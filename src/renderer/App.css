@@ -1,0 +1,91 @@
+/*
+ * @NOTE: Prepend a `~` to css file paths that are in your node_modules
+ *        See https://github.com/webpack-contrib/sass-loader#imports
+ */
+:root{
+  --bg: #0b0b0d;
+  --surface: #0f1113;
+  --muted-foreground: rgba(255,255,255,0.68);
+  --muted-foreground-2: rgba(255,255,255,0.6);
+  --text: #e8e8ea;
+  --accent: #ff4da6; /* pink accent */
+  --accent-weak: rgba(255,77,166,0.10);
+}
+
+body {
+  position: relative;
+  color: var(--text);
+  height: 100vh;
+  margin: 0;
+  background: var(--bg);
+  font-family: sans-serif;
+  overflow-y: hidden;
+  display: block;
+}
+
+button {
+  background-color: var(--surface);
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.03);
+  appearance: none;
+  font-size: 1rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.5);
+  transition: transform 120ms ease, background 120ms ease;
+  cursor: pointer;
+  color: var(--text);
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+li {
+  list-style: none;
+}
+
+a {
+  text-decoration: none;
+  height: fit-content;
+  width: fit-content;
+  margin: 10px;
+}
+
+a:hover {
+  opacity: 1;
+  text-decoration: none;
+}
+
+.Hello {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0;
+}
+
+/* App layout */
+.app-container {
+  display: flex;
+  height: 100vh;
+}
+
+.main-area {
+  margin-left: 13rem; /* sidebar width */
+  display: flex;
+  flex-direction: column;
+  width: calc(100% - 13rem);
+}
+
+.content {
+  flex: 1;
+  padding: 24px;
+  padding-top: 12px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.page {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+}

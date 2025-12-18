@@ -1,0 +1,365 @@
+/* ============================================================================
+   HITCIRCLE EDITOR LAYOUT
+   ============================================================================ */
+
+.hitcircle-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  height: 100%;
+  flex: 1;
+  padding: 0;
+}
+
+.layout-top {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.layout-bottom {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ============================================================================
+   CARD STYLES (shared with Cursor)
+   ============================================================================ */
+
+.card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.01), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.card-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.card-title {
+  margin: 0;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.card-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* ============================================================================
+   PREVIEW SECTION
+   ============================================================================ */
+
+.preview-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.preview-area {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px;
+  flex: 1;
+}
+
+.preview-combined {
+  position: relative;
+  width: 160px;
+  height: 160px;
+  flex-shrink: 0;
+}
+
+.preview-controls {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  width: 100%;
+  margin-top: auto;
+}
+
+.preview-combined img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.preview-base {
+  z-index: 1;
+}
+
+.preview-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+
+.preview-number {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--text);
+  z-index: 3;
+}
+
+/* ============================================================================
+   APPLY SECTION (removed - integrated into preview)
+   ============================================================================ */
+
+.apply-card {
+  display: none;
+}
+
+/* ============================================================================
+   CAROUSEL STYLES
+   ============================================================================ */
+
+.carousel-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.icon-btn {
+  height: 36px;
+  width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  color: var(--muted-foreground);
+  cursor: pointer;
+}
+
+.carousel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 120px;
+  overflow: hidden;
+  position: relative;
+  min-width: 0;
+}
+
+.carousel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: transform 300ms ease, opacity 200ms ease;
+}
+
+.carousel-item.slide-left {
+  animation: slideInLeft 300ms ease forwards;
+}
+
+.carousel-item.slide-right {
+  animation: slideInRight 300ms ease forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(-100px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+.carousel-item img {
+  display: block;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+  aspect-ratio: 1 / 1;
+}
+
+.carousel-item.prev,
+.carousel-item.next {
+  transform: scale(0.75);
+  opacity: 0.45;
+}
+
+.carousel-item.prev img,
+.carousel-item.next img {
+  width: 50px;
+  height: 50px;
+  object-fit: scale-down;
+}
+
+.carousel-item.center {
+  transform: scale(1.08);
+  opacity: 1;
+}
+
+.carousel-item.center img {
+  width: 75px;
+  height: 75px;
+  object-fit: scale-down;
+}
+
+.item-label {
+  margin-top: 8px;
+  color: var(--muted-foreground-2);
+  font-size: 13px;
+}
+
+/* ============================================================================
+   UPLOADER SECTION
+   ============================================================================ */
+
+.uploader {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: stretch;
+  flex-shrink: 0;
+}
+
+.uploader-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.uploader-controls-right {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.uploader-header {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.uploader-header .dropzone {
+  flex: 1;
+}
+
+.uploader-header .trash-btn {
+  flex-shrink: 0;
+}
+
+.dropzone {
+  border: 2px dashed rgba(255, 77, 166, 0.4);
+  border-radius: 8px;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  background: rgba(255, 77, 166, 0.03);
+  min-height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  color: var(--muted-foreground-2);
+  font-size: 13px;
+}
+
+.dropzone:hover {
+  background: rgba(255, 77, 166, 0.06);
+  border-color: rgba(255, 77, 166, 0.6);
+}
+
+.dropzone.active {
+  background: rgba(255, 77, 166, 0.1);
+  border-color: var(--accent);
+}
+
+.trash-btn {
+  background: transparent;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  height: 36px;
+  width: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 150ms ease, color 150ms ease;
+  flex-shrink: 0;
+}
+
+.trash-btn:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+/* ============================================================================
+   BUTTON STYLES
+   ============================================================================ */
+
+.btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.03);
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.btn.primary {
+  background: linear-gradient(90deg, var(--accent), #ff80c9);
+  color: #111;
+  border: none;
+}
+
+.checkbox {
+  display: inline-flex;
+  gap: 2px;
+  align-items: center;
+  color: var(--muted-foreground-2);
+}
+
+/* ============================================================================
+   RESPONSIVE LAYOUT
+   ============================================================================ */
+
+@media (max-width: 900px) {
+  .layout-top,
+  .layout-bottom {
+    grid-template-columns: 1fr;
+  }
+}

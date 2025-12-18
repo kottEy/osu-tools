@@ -1,0 +1,55 @@
+.app-header {
+  display: flex;
+  align-items: center;
+  height: 64px; /* match sidebar top area */
+  padding: 0 16px; /* match sidebar horizontal padding */
+  box-sizing: border-box;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.06));
+  width: 100%;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.header-current .label {
+  font-size: 0.9rem;
+  color: rgba(255,255,255,0.8);
+  margin-right: 8px;
+}
+
+.chip {
+  background: rgba(255,255,255,0.02);
+  padding: 6px 10px;
+  border-radius: 6px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  height: 36px;
+  width: 36px;
+  border-radius: 8px;
+  background: transparent;
+  border: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  line-height: 1;
+  font-size: 16px;
+}
+
+.icon-btn:hover {
+  background: rgba(255,255,255,0.03);
+}
