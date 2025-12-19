@@ -109,15 +109,25 @@ export default function HitSounds({ currentSkin }: HitSoundsProps) {
     [],
   );
 
-  const makeUniqueName = (base: string) => {
-    let candidate = base;
-    let counter = 2;
-    const lowerNames = presets.map((p) => p.name.toLowerCase());
-    while (lowerNames.includes(candidate.toLowerCase())) {
-      candidate = `${base} ${counter}`;
-      counter += 1;
+  const makeUniqueName = (basePrefix: string) => {
+    // Current Skinを除外したプリセットのみを対象に
+    const nonCurrentSkinPresets = presets.filter((p) => p.id !== 'current-skin');
+    
+    // 既存のプリセット名から最大の番号を取得
+    let maxNumber = 0;
+    const regex = new RegExp(`^${basePrefix}\\s*(\\d+)$`, 'i');
+    for (const preset of nonCurrentSkinPresets) {
+      const match = preset.name.match(regex);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNumber) {
+          maxNumber = num;
+        }
+      }
     }
-    return candidate;
+    
+    // 最大の番号 + 1 を使用
+    return `${basePrefix} ${maxNumber + 1}`;
   };
 
   const togglePreset = (id: string) => {
@@ -133,7 +143,7 @@ export default function HitSounds({ currentSkin }: HitSoundsProps) {
   };
 
   const addPreset = async () => {
-    const name = makeUniqueName(`Preset ${presets.length + 1}`);
+    const name = makeUniqueName('Preset');
 
     try {
       const result = await window.electron.ipcRenderer.invoke('hitsound:createPreset', name) as {
@@ -516,9 +526,8 @@ export default function HitSounds({ currentSkin }: HitSoundsProps) {
   };
 
   const handleSaveCurrentSkinAsPreset = async () => {
-    // Add Presetと同様にデフォルト名を自動生成
-    const baseName = `Preset ${presets.length + 1}`;
-    const name = makeUniqueName(baseName);
+    // Add Presetと同様にデフォルト名を自動生成（最大番号 + 1）
+    const name = makeUniqueName('Preset');
 
     setStatusMessage(`Saving Current Skin as "${name}"...`);
 

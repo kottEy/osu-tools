@@ -43,6 +43,38 @@ class CursorService {
   }
 
   /**
+   * 画像をディレクトリ直下に保存（サブフォルダなし）
+   */
+  private saveImageDirect(
+    imageBuffer: Buffer,
+    basePath: string,
+    baseName: string,
+  ): { success: boolean; error?: string; savedPath?: string } {
+    try {
+      const imageService = getImageService();
+      if (!imageService.validatePngBuffer(imageBuffer)) {
+        return { success: false, error: 'PNG形式のみ対応しています' };
+      }
+
+      // ユニークなファイル名を生成
+      let counter = 1;
+      let fileName = `${baseName}-${counter}.png`;
+      while (fs.existsSync(path.join(basePath, fileName))) {
+        counter++;
+        fileName = `${baseName}-${counter}.png`;
+      }
+
+      const fullPath = path.join(basePath, fileName);
+      fs.writeFileSync(fullPath, imageBuffer);
+
+      return { success: true, savedPath: fullPath };
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      return { success: false, error: '画像の保存に失敗しました' };
+    }
+  }
+
+  /**
    * 保存されているカーソル画像一覧を取得
    */
   getCursorList(): CursorPreset[] {
@@ -63,30 +95,27 @@ class CursorService {
       return presets;
     }
 
-    // サブフォルダを探索
-    const subcategories = fs.readdirSync(basePath, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
+    // 直下のファイルを探索（サブフォルダは無視）
+    const files = fs.readdirSync(basePath, { withFileTypes: true })
+      .filter((entry) => !entry.isDirectory())
+      .filter((entry) => {
+        const ext = path.extname(entry.name).toLowerCase();
+        return ext === '.png' && !entry.name.includes('@2x');
+      })
       .map((entry) => entry.name);
 
-    for (const subcategory of subcategories) {
-      const subcategoryPath = path.join(basePath, subcategory);
-      const files = fs.readdirSync(subcategoryPath).filter((file) => {
-        const ext = path.extname(file).toLowerCase();
-        return ext === '.png' && !file.includes('@2x');
+    for (const file of files) {
+      const filePath = path.join(basePath, file);
+      const imageService = getImageService();
+      const previewUrl = imageService.imageToDataUrl(filePath);
+      const baseName = path.basename(file, '.png');
+
+      presets.push({
+        id: `${category}-${baseName}`,
+        name: baseName,
+        imagePath: filePath,
+        previewUrl: previewUrl || '',
       });
-
-      for (const file of files) {
-        const filePath = path.join(subcategoryPath, file);
-        const imageService = getImageService();
-        const previewUrl = imageService.imageToDataUrl(filePath);
-
-        presets.push({
-          id: `${category}-${subcategory}-${path.basename(file, '.png')}`,
-          name: `${subcategory}/${path.basename(file, '.png')}`,
-          imagePath: filePath,
-          previewUrl: previewUrl || '',
-        });
-      }
     }
 
     return presets;
@@ -95,7 +124,7 @@ class CursorService {
   /**
    * カーソル画像を追加
    */
-  async addCursor(imageBuffer: Buffer, subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
+  async addCursor(imageBuffer: Buffer, _subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
     const imageService = getImageService();
 
     // PNG検証
@@ -106,8 +135,8 @@ class CursorService {
     // 100px制限でリサイズ
     const resizedBuffer = imageService.resizeImageKeepAspect(imageBuffer, CURSOR_MAX_SIZE);
 
-    // 保存
-    const result = imageService.saveImage(resizedBuffer, 'cursor', subcategory, baseName);
+    // 直下に保存（subcategoryは使用しない）
+    const result = this.saveImageDirect(resizedBuffer, this.cursorsBasePath, baseName);
     
     // 保存されたファイル名を抽出
     let savedName: string | undefined;
@@ -121,7 +150,7 @@ class CursorService {
   /**
    * カーソルトレイル画像を追加
    */
-  async addCursorTrail(imageBuffer: Buffer, subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
+  async addCursorTrail(imageBuffer: Buffer, _subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
     const imageService = getImageService();
 
     // PNG検証
@@ -132,8 +161,8 @@ class CursorService {
     // 100px制限でリサイズ
     const resizedBuffer = imageService.resizeImageKeepAspect(imageBuffer, CURSOR_MAX_SIZE);
 
-    // 保存
-    const result = imageService.saveImage(resizedBuffer, 'cursortrail', subcategory, baseName);
+    // 直下に保存（subcategoryは使用しない）
+    const result = this.saveImageDirect(resizedBuffer, this.cursorTrailsBasePath, baseName);
     
     // 保存されたファイル名を抽出
     let savedName: string | undefined;
@@ -348,7 +377,7 @@ class CursorService {
 
     try {
       const imageBuffer = fs.readFileSync(cursorPath);
-      return this.addCursor(imageBuffer, 'saved', 'cursor');
+      return this.addCursor(imageBuffer, '', 'cursor');
     } catch (error) {
       console.error('Failed to save current skin cursor:', error);
       return { success: false, error: 'カーソルの保存に失敗しました' };
@@ -396,7 +425,7 @@ class CursorService {
 
     try {
       const imageBuffer = fs.readFileSync(sourcePath);
-      return this.addCursorTrail(imageBuffer, 'saved', baseName);
+      return this.addCursorTrail(imageBuffer, '', baseName);
     } catch (error) {
       console.error('Failed to save current skin trail:', error);
       return { success: false, error: 'トレイルの保存に失敗しました' };
@@ -407,13 +436,12 @@ class CursorService {
    * カーソル画像を削除
    */
   deleteCursor(presetId: string): boolean {
-    // ID形式: cursor-subcategory-basename
-    const parts = presetId.split('-');
-    if (parts.length < 3) return false;
+    // ID形式: cursor-basename (例: cursor-cursor-1)
+    const prefix = 'cursor-';
+    if (!presetId.startsWith(prefix)) return false;
 
-    const subcategory = parts[1];
-    const baseName = parts.slice(2).join('-');
-    const filePath = path.join(this.cursorsBasePath, subcategory, `${baseName}.png`);
+    const baseName = presetId.substring(prefix.length);
+    const filePath = path.join(this.cursorsBasePath, `${baseName}.png`);
 
     try {
       if (fs.existsSync(filePath)) {
@@ -430,13 +458,12 @@ class CursorService {
    * カーソルトレイル画像を削除
    */
   deleteCursorTrail(presetId: string): boolean {
-    // ID形式: cursortrail-subcategory-basename
-    const parts = presetId.split('-');
-    if (parts.length < 3) return false;
+    // ID形式: cursortrail-basename (例: cursortrail-cursortrail-1)
+    const prefix = 'cursortrail-';
+    if (!presetId.startsWith(prefix)) return false;
 
-    const subcategory = parts[1];
-    const baseName = parts.slice(2).join('-');
-    const filePath = path.join(this.cursorTrailsBasePath, subcategory, `${baseName}.png`);
+    const baseName = presetId.substring(prefix.length);
+    const filePath = path.join(this.cursorTrailsBasePath, `${baseName}.png`);
 
     try {
       if (fs.existsSync(filePath)) {

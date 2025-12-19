@@ -15,6 +15,7 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { registerIpcHandlers } from './ipcHandlers';
+import { getSeedService } from './services';
 
 class AppUpdater {
   constructor() {
@@ -126,7 +127,15 @@ app.on('window-all-closed', () => {
 
 app
   .whenReady()
-  .then(() => {
+  .then(async () => {
+    // デフォルトプリセットをシード
+    try {
+      const seedService = getSeedService();
+      await seedService.initialize();
+    } catch (error) {
+      console.error('Failed to initialize seed service:', error);
+    }
+
     createWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the

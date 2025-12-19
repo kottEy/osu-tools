@@ -8,6 +8,7 @@ export interface MediaItem {
   id: number;
   name: string;
   preview: string;
+  presetId?: string; // バックエンドで使用するプリセットID
 }
 
 export interface MediaItemWithPosition extends MediaItem {

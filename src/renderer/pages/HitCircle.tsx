@@ -83,12 +83,14 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
         id: idx + 1,
         name: item.name,
         preview: item.previewUrl,
+        presetId: item.id, // バックエンドのpresetIdを保持
       }));
 
       const overlayItems: MediaItem[] = overlayList.map((item, idx) => ({
         id: idx + 1,
         name: item.name,
         preview: item.previewUrl,
+        presetId: item.id, // バックエンドのpresetIdを保持
       }));
 
       // 現在のスキンからヒットサークル画像を取得
@@ -313,18 +315,56 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
     if (f?.type.includes('png')) handleAddOverlay(f);
   };
 
-  const handleDeleteCircle = (index: number) => {
+  const handleDeleteCircle = async (index: number) => {
     if (hitcircles.length <= 1) {
       return;
+    }
+
+    const hitcircle = hitcircles[index];
+    
+    // Current Skinは削除不可
+    if (hitcircle.name === 'Current Skin') {
+      return;
+    }
+
+    // バックエンドの削除APIを呼ぶ
+    if (hitcircle.presetId) {
+      try {
+        const result = await window.electron.ipcRenderer.invoke('hitcircle:delete', hitcircle.presetId);
+        if (!result) {
+          console.error('Failed to delete hitcircle from backend');
+        }
+      } catch (error) {
+        console.error('Failed to delete hitcircle:', error);
+      }
     }
 
     setHitcircles((s) => s.filter((_, i) => i !== index));
     setSelectedCircle(Math.max(0, Math.min(selectedCircle, hitcircles.length - 2)));
   };
 
-  const handleDeleteOverlay = (index: number) => {
+  const handleDeleteOverlay = async (index: number) => {
     if (overlays.length <= 1) {
       return;
+    }
+
+    const overlay = overlays[index];
+    
+    // Current Skinは削除不可
+    if (overlay.name === 'Current Skin (Overlay)') {
+      return;
+    }
+
+    // バックエンドの削除APIを呼ぶ
+    if (overlay.presetId) {
+      try {
+        const result = await window.electron.ipcRenderer.invoke('hitcircle:deleteOverlay', overlay.presetId);
+        if (!result) {
+          console.error('Failed to delete overlay from backend');
+        }
+      } catch (error) {
+        console.error('Failed to delete overlay:', error);
+      }
     }
 
     setOverlays((s) => s.filter((_, i) => i !== index));
@@ -422,11 +462,37 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
   };
 
   // Number Preset handlers
+  /**
+   * 一意のプリセット名を生成
+   * Current Skinを除外し、最大の番号 + 1 を使用
+   */
+  const makeUniquePresetName = (basePrefix: string) => {
+    // Current Skinを除外したプリセットのみを対象に
+    const nonCurrentSkinPresets = numberPresets.filter((p) => p.id !== 'current-skin');
+    
+    // 既存のプリセット名から最大の番号を取得
+    let maxNumber = 0;
+    const regex = new RegExp(`^${basePrefix}\\s*(\\d+)$`, 'i');
+    for (const preset of nonCurrentSkinPresets) {
+      const match = preset.name.match(regex);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxNumber) {
+          maxNumber = num;
+        }
+      }
+    }
+    
+    // 最大の番号 + 1 を使用
+    return `${basePrefix} ${maxNumber + 1}`;
+  };
+
   const handleAddPreset = async () => {
+    const name = makeUniquePresetName('Number Preset');
     try {
       const result = await window.electron.ipcRenderer.invoke(
         'hitcircle:createNumberPreset',
-        `Number Preset ${numberPresets.length + 1}`,
+        name,
       ) as { success: boolean; preset?: NumberPreset; error?: string };
 
       if (result.success && result.preset) {
@@ -434,13 +500,13 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
         setExpandedPresets((prev) => new Set(prev).add(result.preset!.id));
       } else {
         // フォールバック: ローカルで作成
-        const newPreset = createEmptyNumberPreset(`Number Preset ${numberPresets.length + 1}`);
+        const newPreset = createEmptyNumberPreset(name);
         setNumberPresets((prev) => [...prev, newPreset]);
         setExpandedPresets((prev) => new Set(prev).add(newPreset.id));
       }
     } catch (error) {
       console.error('Failed to create preset:', error);
-      const newPreset = createEmptyNumberPreset(`Number Preset ${numberPresets.length + 1}`);
+      const newPreset = createEmptyNumberPreset(name);
       setNumberPresets((prev) => [...prev, newPreset]);
       setExpandedPresets((prev) => new Set(prev).add(newPreset.id));
     }
@@ -539,7 +605,24 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
     }
   };
 
-  const handleImageRemove = (presetId: string, numberKey: string) => {
+  const handleImageRemove = async (presetId: string, numberKey: string) => {
+    // Current Skinの場合はバックエンド削除不要
+    if (presetId !== 'current-skin') {
+      try {
+        const result = await window.electron.ipcRenderer.invoke(
+          'hitcircle:removeNumberFromPreset',
+          presetId,
+          numberKey,
+        ) as { success: boolean; error?: string };
+        
+        if (!result.success) {
+          console.error('Failed to remove number from preset:', result.error);
+        }
+      } catch (error) {
+        console.error('Failed to remove number from preset:', error);
+      }
+    }
+
     // Clear preview if the removed image was being previewed
     const removedKey = `${presetId}-${numberKey}`;
     if (selectedPreviewKey === removedKey) {
@@ -614,21 +697,14 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
    * Save Current Skin numbers as preset
    */
   const handleSaveCurrentSkinNumbersAsPreset = async () => {
-    // Add Presetと同様にデフォルト名を自動生成
-    const baseName = `Number Preset ${numberPresets.length + 1}`;
-    let candidate = baseName;
-    let counter = 2;
-    const lowerNames = numberPresets.map((p) => p.name.toLowerCase());
-    while (lowerNames.includes(candidate.toLowerCase())) {
-      candidate = `${baseName} ${counter}`;
-      counter += 1;
-    }
+    // Add Presetと同様にデフォルト名を自動生成（最大番号 + 1）
+    const name = makeUniquePresetName('Number Preset');
 
     setIsSaving(true);
     try {
       const result = await window.electron.ipcRenderer.invoke(
         'hitcircle:saveCurrentSkinNumbersAsPreset',
-        candidate,
+        name,
       ) as { success: boolean; error?: string };
 
       if (result.success) {

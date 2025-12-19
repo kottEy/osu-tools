@@ -53,6 +53,38 @@ class HitCircleService {
   }
 
   /**
+   * 画像をディレクトリ直下に保存（サブフォルダなし）
+   */
+  private saveImageDirect(
+    imageBuffer: Buffer,
+    basePath: string,
+    baseName: string,
+  ): { success: boolean; error?: string; savedPath?: string } {
+    try {
+      const imageService = getImageService();
+      if (!imageService.validatePngBuffer(imageBuffer)) {
+        return { success: false, error: 'PNG形式のみ対応しています' };
+      }
+
+      // ユニークなファイル名を生成
+      let counter = 1;
+      let fileName = `${baseName}-${counter}.png`;
+      while (fs.existsSync(path.join(basePath, fileName))) {
+        counter++;
+        fileName = `${baseName}-${counter}.png`;
+      }
+
+      const fullPath = path.join(basePath, fileName);
+      fs.writeFileSync(fullPath, imageBuffer);
+
+      return { success: true, savedPath: fullPath };
+    } catch (error) {
+      console.error('Failed to save image:', error);
+      return { success: false, error: '画像の保存に失敗しました' };
+    }
+  }
+
+  /**
    * Lazerモード対応のスキンフォルダパスを取得
    */
   private getSkinPath(): { skinFolderPath: string | null; error?: string } {
@@ -99,30 +131,27 @@ class HitCircleService {
       return presets;
     }
 
-    // サブフォルダを探索
-    const subcategories = fs.readdirSync(basePath, { withFileTypes: true })
-      .filter((entry) => entry.isDirectory())
+    // 直下のファイルを探索（サブフォルダは無視）
+    const files = fs.readdirSync(basePath, { withFileTypes: true })
+      .filter((entry) => !entry.isDirectory())
+      .filter((entry) => {
+        const ext = path.extname(entry.name).toLowerCase();
+        return ext === '.png' && !entry.name.includes('@2x');
+      })
       .map((entry) => entry.name);
 
-    for (const subcategory of subcategories) {
-      const subcategoryPath = path.join(basePath, subcategory);
-      const files = fs.readdirSync(subcategoryPath).filter((file) => {
-        const ext = path.extname(file).toLowerCase();
-        return ext === '.png' && !file.includes('@2x');
+    for (const file of files) {
+      const filePath = path.join(basePath, file);
+      const imageService = getImageService();
+      const previewUrl = imageService.imageToDataUrl(filePath);
+      const baseName = path.basename(file, '.png');
+
+      presets.push({
+        id: `${category}-${baseName}`,
+        name: baseName,
+        imagePath: filePath,
+        previewUrl: previewUrl || '',
       });
-
-      for (const file of files) {
-        const filePath = path.join(subcategoryPath, file);
-        const imageService = getImageService();
-        const previewUrl = imageService.imageToDataUrl(filePath);
-
-        presets.push({
-          id: `${category}-${subcategory}-${path.basename(file, '.png')}`,
-          name: `${subcategory}/${path.basename(file, '.png')}`,
-          imagePath: filePath,
-          previewUrl: previewUrl || '',
-        });
-      }
     }
 
     return presets;
@@ -131,7 +160,7 @@ class HitCircleService {
   /**
    * ヒットサークル画像を追加
    */
-  async addHitCircle(imageBuffer: Buffer, subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
+  async addHitCircle(imageBuffer: Buffer, _subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
     const imageService = getImageService();
 
     if (!imageService.validatePngBuffer(imageBuffer)) {
@@ -141,7 +170,8 @@ class HitCircleService {
     // 128x128 にリサイズ
     const resizedBuffer = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE, HITCIRCLE_SIZE);
 
-    const result = imageService.saveImage(resizedBuffer, 'hitcircle', subcategory, baseName);
+    // 直下に保存（subcategoryは使用しない）
+    const result = this.saveImageDirect(resizedBuffer, this.hitcircleBasePath, baseName);
     
     // 保存されたファイル名を抽出
     let savedName: string | undefined;
@@ -155,7 +185,7 @@ class HitCircleService {
   /**
    * ヒットサークルオーバーレイ画像を追加
    */
-  async addHitCircleOverlay(imageBuffer: Buffer, subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
+  async addHitCircleOverlay(imageBuffer: Buffer, _subcategory: string, baseName: string): Promise<ApplyResult & { savedName?: string }> {
     const imageService = getImageService();
 
     if (!imageService.validatePngBuffer(imageBuffer)) {
@@ -165,7 +195,8 @@ class HitCircleService {
     // 128x128 にリサイズ
     const resizedBuffer = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE, HITCIRCLE_SIZE);
 
-    const result = imageService.saveImage(resizedBuffer, 'hitcircleoverlay', subcategory, baseName);
+    // 直下に保存（subcategoryは使用しない）
+    const result = this.saveImageDirect(resizedBuffer, this.hitcircleOverlayBasePath, baseName);
     
     // 保存されたファイル名を抽出
     let savedName: string | undefined;
@@ -348,6 +379,50 @@ class HitCircleService {
   }
 
   /**
+   * ヒットサークル画像を削除
+   */
+  deleteHitCircle(presetId: string): boolean {
+    // ID形式: hitcircle-basename (例: hitcircle-hitcircle-1)
+    const prefix = 'hitcircle-';
+    if (!presetId.startsWith(prefix)) return false;
+
+    const baseName = presetId.substring(prefix.length);
+    const filePath = path.join(this.hitcircleBasePath, `${baseName}.png`);
+
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        return true;
+      }
+    } catch (error) {
+      console.error('Failed to delete hitcircle:', error);
+    }
+    return false;
+  }
+
+  /**
+   * オーバーレイ画像を削除
+   */
+  deleteHitCircleOverlay(presetId: string): boolean {
+    // ID形式: hitcircleoverlay-basename (例: hitcircleoverlay-hitcircleoverlay-1)
+    const prefix = 'hitcircleoverlay-';
+    if (!presetId.startsWith(prefix)) return false;
+
+    const baseName = presetId.substring(prefix.length);
+    const filePath = path.join(this.hitcircleOverlayBasePath, `${baseName}.png`);
+
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        return true;
+      }
+    } catch (error) {
+      console.error('Failed to delete hitcircle overlay:', error);
+    }
+    return false;
+  }
+
+  /**
    * 数字プリセットに画像を追加
    */
   addNumberToPreset(presetName: string, numberIndex: number, imageBuffer: Buffer, is2x: boolean = false): ApplyResult {
@@ -372,6 +447,31 @@ class HitCircleService {
     } catch (error) {
       console.error('Failed to add number to preset:', error);
       return { success: false, error: '画像の追加に失敗しました' };
+    }
+  }
+
+  /**
+   * 数字プリセットから画像を削除
+   */
+  removeNumberFromPreset(presetName: string, numberKey: string): ApplyResult {
+    const presetPath = path.join(this.defaultNumbersBasePath, presetName);
+    if (!fs.existsSync(presetPath)) {
+      return { success: false, error: 'プリセットが見つかりません' };
+    }
+
+    // numberKey は 'default-0' ～ 'default-9' または 'default-0@2x' ～ 'default-9@2x' の形式
+    const fileName = `${numberKey}.png`;
+    const filePath = path.join(presetPath, fileName);
+
+    try {
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+        return { success: true };
+      }
+      return { success: false, error: 'ファイルが見つかりませんでした' };
+    } catch (error) {
+      console.error('Failed to remove number from preset:', error);
+      return { success: false, error: '画像の削除に失敗しました' };
     }
   }
 
@@ -672,7 +772,7 @@ class HitCircleService {
 
     try {
       const imageBuffer = fs.readFileSync(hitcirclePath);
-      return this.addHitCircle(imageBuffer, 'saved', 'hitcircle');
+      return this.addHitCircle(imageBuffer, '', 'hitcircle');
     } catch (error) {
       console.error('Failed to save current skin hitcircle:', error);
       return { success: false, error: 'ヒットサークルの保存に失敗しました' };
@@ -696,7 +796,7 @@ class HitCircleService {
 
     try {
       const imageBuffer = fs.readFileSync(overlayPath);
-      return this.addHitCircleOverlay(imageBuffer, 'saved', 'hitcircleoverlay');
+      return this.addHitCircleOverlay(imageBuffer, '', 'hitcircleoverlay');
     } catch (error) {
       console.error('Failed to save current skin overlay:', error);
       return { success: false, error: 'オーバーレイの保存に失敗しました' };

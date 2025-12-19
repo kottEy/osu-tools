@@ -340,6 +340,16 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
     return hitcircleService.getCurrentSkinHitCircle();
   });
 
+  ipcMain.handle('hitcircle:delete', async (_, presetId: string) => {
+    const hitcircleService = getHitCircleService();
+    return hitcircleService.deleteHitCircle(presetId);
+  });
+
+  ipcMain.handle('hitcircle:deleteOverlay', async (_, presetId: string) => {
+    const hitcircleService = getHitCircleService();
+    return hitcircleService.deleteHitCircleOverlay(presetId);
+  });
+
   ipcMain.handle('hitcircle:getCurrentSkinDefaultNumbers', async () => {
     const hitcircleService = getHitCircleService();
     return hitcircleService.getCurrentSkinDefaultNumbers();
@@ -422,6 +432,15 @@ export function registerIpcHandlers(mainWindow: BrowserWindow): void {
     // numberKey は 'default-0' ~ 'default-9' の形式
     const numberIndex = parseInt(numberKey.replace('default-', ''), 10);
     return hitcircleService.addNumberToPreset(presetId, numberIndex, buffer, false);
+  });
+
+  ipcMain.handle('hitcircle:removeNumberFromPreset', async (
+    _,
+    presetId: string,
+    numberKey: string,
+  ) => {
+    const hitcircleService = getHitCircleService();
+    return hitcircleService.removeNumberFromPreset(presetId, numberKey);
   });
 
   // ========== Hitsound IPC ==========

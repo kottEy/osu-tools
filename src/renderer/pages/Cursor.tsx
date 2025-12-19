@@ -73,12 +73,14 @@ export default function Cursor({ currentSkin }: CursorProps) {
         id: idx + 1,
         name: item.name,
         preview: item.previewUrl,
+        presetId: item.id, // バックエンドのpresetIdを保持
       }));
 
       const trailItems: MediaItem[] = trailList.map((item, idx) => ({
         id: idx + 1,
         name: item.name,
         preview: item.previewUrl,
+        presetId: item.id, // バックエンドのpresetIdを保持
       }));
 
       // 現在のスキンからカーソル画像を取得
@@ -272,9 +274,28 @@ export default function Cursor({ currentSkin }: CursorProps) {
   /**
    * Delete cursor at specified index
    */
-  const handleDeleteCursor = (index: number) => {
+  const handleDeleteCursor = async (index: number) => {
     if (cursors.length <= 1) {
       return;
+    }
+
+    const cursor = cursors[index];
+    
+    // Current Skinは削除不可
+    if (cursor.name === 'Current Skin') {
+      return;
+    }
+
+    // バックエンドの削除APIを呼ぶ
+    if (cursor.presetId) {
+      try {
+        const result = await window.electron.ipcRenderer.invoke('cursor:delete', cursor.presetId);
+        if (!result) {
+          console.error('Failed to delete cursor from backend');
+        }
+      } catch (error) {
+        console.error('Failed to delete cursor:', error);
+      }
     }
 
     setCursors((s) => s.filter((_, i) => i !== index));
@@ -285,9 +306,28 @@ export default function Cursor({ currentSkin }: CursorProps) {
   /**
    * Delete trail at specified index
    */
-  const handleDeleteTrail = (index: number) => {
+  const handleDeleteTrail = async (index: number) => {
     if (trails.length <= 1) {
       return;
+    }
+
+    const trail = trails[index];
+    
+    // Current Skinは削除不可
+    if (trail.name === 'Current Skin (Trail)' || trail.name === 'Current Skin (Middle)') {
+      return;
+    }
+
+    // バックエンドの削除APIを呼ぶ
+    if (trail.presetId) {
+      try {
+        const result = await window.electron.ipcRenderer.invoke('cursor:deleteTrail', trail.presetId);
+        if (!result) {
+          console.error('Failed to delete trail from backend');
+        }
+      } catch (error) {
+        console.error('Failed to delete trail:', error);
+      }
     }
 
     setTrails((s) => s.filter((_, i) => i !== index));

@@ -30,3 +30,4 @@ export {
   type SkinFonts,
 } from './skinIni';
 export { getUpdateService, type UpdateInfo } from './update';
+export { getSeedService } from './seed';
