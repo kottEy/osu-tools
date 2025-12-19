@@ -11,6 +11,7 @@
   gap: 12px;
   align-items: stretch;
   flex-shrink: 0;
+  margin-top: auto;
 }
 
 .controls-row {
@@ -59,12 +60,11 @@
 .dropzone {
   border: 2px dashed rgba(255, 77, 166, 0.4);
   border-radius: 8px;
-  padding: 24px;
   text-align: center;
   cursor: pointer;
   transition: background 150ms ease, border-color 150ms ease;
   background: rgba(255, 77, 166, 0.03);
-  min-height: 80px;
+  height: clamp(100px, 30vh, 240px);
   display: flex;
   align-items: center;
   justify-content: center;

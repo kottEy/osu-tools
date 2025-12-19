@@ -108,7 +108,7 @@
 
 .carousel-item.prev img,
 .carousel-item.next img {
-  width: clamp(45px, 7vw, 150px);
+  width: clamp(45px, 8vw, 200px);
   height: auto;
 }
 
@@ -118,7 +118,7 @@
 }
 
 .carousel-item.center img {
-  width: clamp(60px, 7vw, 225px);
+  width: clamp(60px, 8vw, 300px);
   height: auto;
 }
 

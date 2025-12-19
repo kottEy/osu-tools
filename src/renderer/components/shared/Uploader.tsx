@@ -32,7 +32,6 @@ export function Uploader({
 }: UploaderProps) {
   return (
     <div className="uploader">
-      {children}
       <div
         className={`dropzone ${isDragActive ? 'active' : ''}`}
         onDragOver={(e) => e.preventDefault()}
@@ -41,6 +40,7 @@ export function Uploader({
       >
         <div className="dropzone-text">{dropzoneText}</div>
       </div>
+      {children}
     </div>
   );
 }

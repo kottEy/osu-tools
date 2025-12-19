@@ -12,15 +12,35 @@
   --accent-weak: rgba(255,77,166,0.10);
 }
 
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+
+::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 100, 100, 0.6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(150, 150, 150, 0.8);
+}
+
+
 body {
   position: relative;
   color: var(--text);
-  height: 100vh;
   margin: 0;
   background: var(--bg);
   font-family: sans-serif;
-  overflow-y: hidden;
   display: block;
+  overflow-y: auto;
 }
 
 button {
@@ -66,7 +86,7 @@ a:hover {
 /* App layout */
 .app-container {
   display: flex;
-  height: 100vh;
+  min-height: 100vh;
 }
 
 .main-area {

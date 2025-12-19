@@ -236,30 +236,30 @@ export default function Cursor() {
                 e.currentTarget.value = '';
               }}
             />
-          </Uploader>
-          <ControlsRow>
-            <TrashButton
-              onClick={() => handleDeleteCursor(selectedCursor)}
-              title="Remove selected cursor"
-            />
-            <ControlsRowRight>
-              <Checkbox
-                label="@2x"
-                checked={cursor2x}
-                onChange={(checked) => setCursor2x(checked)}
+            <ControlsRow>
+              <TrashButton
+                onClick={() => handleDeleteCursor(selectedCursor)}
+                title="Remove selected cursor"
               />
-              <Button
-                variant="primary"
-                onClick={() =>
-                  console.log('Apply cursor', cursors[selectedCursor], {
-                    cursor2x,
-                  })
-                }
-              >
-                Apply
-              </Button>
-            </ControlsRowRight>
-          </ControlsRow>
+              <ControlsRowRight>
+                <Checkbox
+                  label="@2x"
+                  checked={cursor2x}
+                  onChange={(checked) => setCursor2x(checked)}
+                />
+                <Button
+                  variant="primary"
+                  onClick={() =>
+                    console.log('Apply cursor', cursors[selectedCursor], {
+                      cursor2x,
+                    })
+                  }
+                >
+                  Apply
+                </Button>
+              </ControlsRowRight>
+            </ControlsRow>
+          </Uploader>
         </CardBody>
       </Card>
 
@@ -313,36 +313,36 @@ export default function Cursor() {
                 e.currentTarget.value = '';
               }}
             />
+            <ControlsRow>
+              <TrashButton
+                onClick={() => handleDeleteTrail(selectedTrail)}
+                title="Remove selected trail"
+              />
+              <ControlsRowRight>
+                <Checkbox
+                  label="@2x"
+                  checked={trail2x}
+                  onChange={(checked) => setTrail2x(checked)}
+                />
+                <Checkbox
+                  label="cursormiddle"
+                  checked={useCursorMiddle}
+                  onChange={(checked) => setUseCursorMiddle(checked)}
+                />
+                <Button
+                  variant="primary"
+                  onClick={() =>
+                    console.log('Apply trail', trails[selectedTrail], {
+                      trail2x,
+                      useCursorMiddle,
+                    })
+                  }
+                >
+                  Apply
+                </Button>
+              </ControlsRowRight>
+            </ControlsRow>
           </Uploader>
-          <ControlsRow>
-            <TrashButton
-              onClick={() => handleDeleteTrail(selectedTrail)}
-              title="Remove selected trail"
-            />
-            <ControlsRowRight>
-              <Checkbox
-                label="@2x"
-                checked={trail2x}
-                onChange={(checked) => setTrail2x(checked)}
-              />
-              <Checkbox
-                label="cursormiddle"
-                checked={useCursorMiddle}
-                onChange={(checked) => setUseCursorMiddle(checked)}
-              />
-              <Button
-                variant="primary"
-                onClick={() =>
-                  console.log('Apply trail', trails[selectedTrail], {
-                    trail2x,
-                    useCursorMiddle,
-                  })
-                }
-              >
-                Apply
-              </Button>
-            </ControlsRowRight>
-          </ControlsRow>
         </CardBody>
       </Card>
     </div>

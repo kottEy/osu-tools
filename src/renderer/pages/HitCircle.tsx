@@ -285,34 +285,34 @@ export default function HitCircle() {
                   e.currentTarget.value = '';
                 }}
               />
-            </Uploader>
-            <ControlsRow>
-              <TrashButton
-                onClick={() => handleDeleteCircle(selectedCircle)}
-                title="Remove selected hit circle"
-              />
-              <ControlsRowRight>
-                <Checkbox
-                  label="@2x"
-                  checked={hitcircles2x}
-                  onChange={setHitcircles2x}
+              <ControlsRow>
+                <TrashButton
+                  onClick={() => handleDeleteCircle(selectedCircle)}
+                  title="Remove selected hit circle"
                 />
-                <Button
-                  variant="primary"
-                  onClick={() =>
-                    console.log(
-                      'Apply hitcircle',
-                      {
-                        hitcircle: hitcircles[selectedCircle],
-                      },
-                      { hitcircles2x },
-                    )
-                  }
-                >
-                  Apply
-                </Button>
-              </ControlsRowRight>
-            </ControlsRow>
+                <ControlsRowRight>
+                  <Checkbox
+                    label="@2x"
+                    checked={hitcircles2x}
+                    onChange={setHitcircles2x}
+                  />
+                  <Button
+                    variant="primary"
+                    onClick={() =>
+                      console.log(
+                        'Apply hitcircle',
+                        {
+                          hitcircle: hitcircles[selectedCircle],
+                        },
+                        { hitcircles2x },
+                      )
+                    }
+                  >
+                    Apply
+                  </Button>
+                </ControlsRowRight>
+              </ControlsRow>
+            </Uploader>
           </CardBody>
         </Card>
 
@@ -365,34 +365,34 @@ export default function HitCircle() {
                   e.currentTarget.value = '';
                 }}
               />
-            </Uploader>
-            <ControlsRow>
-              <TrashButton
-                onClick={() => handleDeleteOverlay(selectedOverlay)}
-                title="Remove selected overlay"
-              />
-              <ControlsRowRight>
-                <Checkbox
-                  label="@2x"
-                  checked={overlays2x}
-                  onChange={setOverlays2x}
+              <ControlsRow>
+                <TrashButton
+                  onClick={() => handleDeleteOverlay(selectedOverlay)}
+                  title="Remove selected overlay"
                 />
-                <Button
-                  variant="primary"
-                  onClick={() =>
-                    console.log(
-                      'Apply hitcircle overlay',
-                      {
-                        overlay: overlays[selectedOverlay],
-                      },
-                      { overlays2x },
-                    )
-                  }
-                >
-                  Apply
-                </Button>
-              </ControlsRowRight>
-            </ControlsRow>
+                <ControlsRowRight>
+                  <Checkbox
+                    label="@2x"
+                    checked={overlays2x}
+                    onChange={setOverlays2x}
+                  />
+                  <Button
+                    variant="primary"
+                    onClick={() =>
+                      console.log(
+                        'Apply hitcircle overlay',
+                        {
+                          overlay: overlays[selectedOverlay],
+                        },
+                        { overlays2x },
+                      )
+                    }
+                  >
+                    Apply
+                  </Button>
+                </ControlsRowRight>
+              </ControlsRow>
+            </Uploader>
           </CardBody>
         </Card>
       </div>
