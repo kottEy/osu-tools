@@ -1,32 +1,36 @@
 import React, { useState } from 'react';
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+} from '../components/shared/Card';
+import {
+  Carousel,
+  CarouselRow,
+  CarouselItem,
+  IconButton,
+  getVisible,
+  type MediaItem,
+} from '../components/shared/Carousel';
+import {
+  Uploader,
+  ControlsRow,
+  ControlsRowRight,
+  TrashButton,
+  Checkbox,
+  Button,
+} from '../components/shared/Uploader';
 import './hitcircle.css';
 
-type MediaItem = { id: number; name: string; preview: string };
-
+// Demo data - replace with actual data loading logic
 const demoHitCircles: MediaItem[] = [
   { id: 1, name: 'hitcircle-1', preview: '/pink-circle-osu.jpg' },
-  { id: 2, name: 'hitcircle-2', preview: '/blue-circle-osu.jpg' },
-  { id: 3, name: 'hitcircle-3', preview: '/white-circle-osu.jpg' },
 ];
 
 const demoOverlays: MediaItem[] = [
   { id: 1, name: 'overlay-1', preview: '/circle-overlay-ring.jpg' },
-  { id: 2, name: 'overlay-2', preview: '/circle-overlay-glow.jpg' },
-  { id: 3, name: 'overlay-3', preview: '/circle-overlay-simple.jpg' },
 ];
-
-// Default presets removed — handled outside this editor
-
-function getVisible(items: MediaItem[], index: number): Array<MediaItem & { position: 'prev' | 'center' | 'next' }> {
-  const total = items.length;
-  const prev = (index - 1 + total) % total;
-  const next = (index + 1) % total;
-  return [
-    { ...items[prev], position: 'prev' },
-    { ...items[index], position: 'center' },
-    { ...items[next], position: 'next' },
-  ];
-}
 
 export default function HitCircle() {
   const [hitcircles, setHitcircles] = useState<MediaItem[]>(demoHitCircles);
@@ -37,21 +41,32 @@ export default function HitCircle() {
   const [selectedOverlay, setSelectedOverlay] = useState(0);
   const [isAnimatingCircle, setIsAnimatingCircle] = useState(false);
   const [isAnimatingOverlay, setIsAnimatingOverlay] = useState(false);
-  const [circleSlideDir, setCircleSlideDir] = useState<'left' | 'right' | null>(null);
-  const [overlaySlideDir, setOverlaySlideDir] = useState<'left' | 'right' | null>(null);
+  const [circleSlideDir, setCircleSlideDir] = useState<'left' | 'right' | null>(
+    null,
+  );
+  const [overlaySlideDir, setOverlaySlideDir] = useState<
+    'left' | 'right' | null
+  >(null);
   const [use2x, setUse2x] = useState(false);
 
   const fileRefCircle = React.useRef<HTMLInputElement | null>(null);
   const fileRefOverlay = React.useRef<HTMLInputElement | null>(null);
 
-  const prevCircle = () => {
+  /**
+   * Navigate to previous hit circle with animation
+   */
+  const handlePrevCircle = () => {
     if (isAnimatingCircle) return;
     setCircleSlideDir('right');
     setIsAnimatingCircle(true);
     setSelectedCircle((s) => (s === 0 ? hitcircles.length - 1 : s - 1));
     setTimeout(() => setIsAnimatingCircle(false), 300);
   };
-  const nextCircle = () => {
+
+  /**
+   * Navigate to next hit circle with animation
+   */
+  const handleNextCircle = () => {
     if (isAnimatingCircle) return;
     setCircleSlideDir('left');
     setIsAnimatingCircle(true);
@@ -59,14 +74,21 @@ export default function HitCircle() {
     setTimeout(() => setIsAnimatingCircle(false), 300);
   };
 
-  const prevOverlay = () => {
+  /**
+   * Navigate to previous overlay with animation
+   */
+  const handlePrevOverlay = () => {
     if (isAnimatingOverlay) return;
     setOverlaySlideDir('right');
     setIsAnimatingOverlay(true);
     setSelectedOverlay((s) => (s === 0 ? overlays.length - 1 : s - 1));
     setTimeout(() => setIsAnimatingOverlay(false), 300);
   };
-  const nextOverlay = () => {
+
+  /**
+   * Navigate to next overlay with animation
+   */
+  const handleNextOverlay = () => {
     if (isAnimatingOverlay) return;
     setOverlaySlideDir('left');
     setIsAnimatingOverlay(true);
@@ -74,165 +96,305 @@ export default function HitCircle() {
     setTimeout(() => setIsAnimatingOverlay(false), 300);
   };
 
-  const addHitcircle = (file?: File) => {
+  /**
+   * Add new hit circle from file
+   */
+  const handleAddHitcircle = (file?: File) => {
     if (!file) return;
-    const item = { id: hitcircles.length + 1, name: file.name || `hitcircle-${hitcircles.length + 1}`, preview: URL.createObjectURL(file) };
+    const item: MediaItem = {
+      id: hitcircles.length + 1,
+      name: file.name || `hitcircle-${hitcircles.length + 1}`,
+      preview: URL.createObjectURL(file),
+    };
     setHitcircles((s) => [...s, item]);
   };
-  const addOverlay = (file?: File) => {
+
+  /**
+   * Add new overlay from file
+   */
+  const handleAddOverlay = (file?: File) => {
     if (!file) return;
-    const item = { id: overlays.length + 1, name: file.name || `overlay-${overlays.length + 1}`, preview: URL.createObjectURL(file) };
+    const item: MediaItem = {
+      id: overlays.length + 1,
+      name: file.name || `overlay-${overlays.length + 1}`,
+      preview: URL.createObjectURL(file),
+    };
     setOverlays((s) => [...s, item]);
   };
 
-  const onDropCircle = (e: React.DragEvent) => {
+  /**
+   * Handle hit circle drop event
+   */
+  const handleDropCircle = (e: React.DragEvent) => {
     e.preventDefault();
     const f = e.dataTransfer.files?.[0];
-    if (f?.type.startsWith('image/')) addHitcircle(f);
-  };
-  const onDropOverlay = (e: React.DragEvent) => {
-    e.preventDefault();
-    const f = e.dataTransfer.files?.[0];
-    if (f?.type.startsWith('image/')) addOverlay(f);
+    if (f?.type.startsWith('image/')) handleAddHitcircle(f);
   };
 
-  // use the top-level `getVisible` helper
+  /**
+   * Handle overlay drop event
+   */
+  const handleDropOverlay = (e: React.DragEvent) => {
+    e.preventDefault();
+    const f = e.dataTransfer.files?.[0];
+    if (f?.type.startsWith('image/')) handleAddOverlay(f);
+  };
+
+  /**
+   * Delete hit circle at specified index
+   */
+  const handleDeleteCircle = (index: number) => {
+    if (hitcircles.length <= 1) {
+      window.alert('At least one hit circle is required.');
+      return;
+    }
+    if (!window.confirm('Remove selected hit circle?')) return;
+
+    try {
+      const url = hitcircles[index]?.preview;
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
+    } catch (e) {
+      // ignore
+    }
+
+    setHitcircles((s) => s.filter((_, i) => i !== index));
+    const newIndex = Math.max(
+      0,
+      Math.min(selectedCircle, hitcircles.length - 2),
+    );
+    setSelectedCircle(newIndex);
+  };
+
+  /**
+   * Delete overlay at specified index
+   */
+  const handleDeleteOverlay = (index: number) => {
+    if (overlays.length <= 1) {
+      window.alert('At least one overlay is required.');
+      return;
+    }
+    if (!window.confirm('Remove selected overlay?')) return;
+
+    try {
+      const url = overlays[index]?.preview;
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
+    } catch (e) {
+      // ignore
+    }
+
+    setOverlays((s) => s.filter((_, i) => i !== index));
+    const newIndex = Math.max(
+      0,
+      Math.min(selectedOverlay, overlays.length - 2),
+    );
+    setSelectedOverlay(newIndex);
+  };
 
   return (
     <div className="hitcircle-editor page">
+      {/* Preview Section */}
       <div className="layout-top">
-        <section className="card preview-card">
-          <div className="card-body preview-area">
+        <Card>
+          <CardHeader>
+            <CardTitle>Preview</CardTitle>
+          </CardHeader>
+          <CardBody className="preview-area">
             <div className="preview-combined">
-              <img src={hitcircles[selectedCircle]?.preview} alt="hitcircle" className="preview-base" />
-              <img src={overlays[selectedOverlay]?.preview} alt="overlay" className="preview-overlay" />
+              <img
+                src={hitcircles[selectedCircle]?.preview}
+                alt="hitcircle"
+                className="preview-base"
+              />
+              <img
+                src={overlays[selectedOverlay]?.preview}
+                alt="overlay"
+                className="preview-overlay"
+              />
               <div className="preview-number">1</div>
             </div>
-            <div className="preview-controls">
-              <label className="checkbox">
-                <input type="checkbox" checked={use2x} onChange={(e) => setUse2x(e.target.checked)} />
-                <span>@2x</span>
-              </label>
-              <button className="btn primary" onClick={() => console.log('Apply hitcircle, hitcircle overlay', { hitcircle: hitcircles[selectedCircle], overlay: overlays[selectedOverlay] }, { use2x })}>Apply</button>
-            </div>
-          </div>
-        </section>
+            <ControlsRowRight>
+              <Checkbox label="@2x" checked={use2x} onChange={setUse2x} />
+              <Button
+                variant="primary"
+                onClick={() =>
+                  console.log(
+                    'Apply hitcircle, hitcircle overlay',
+                    {
+                      hitcircle: hitcircles[selectedCircle],
+                      overlay: overlays[selectedOverlay],
+                    },
+                    { use2x },
+                  )
+                }
+              >
+                Apply
+              </Button>
+            </ControlsRowRight>
+          </CardBody>
+        </Card>
       </div>
 
+      {/* Hit Circle and Overlay Sections */}
       <div className="layout-bottom">
-        <section className="card">
-          <header className="card-header"><h3 className="card-title">Hit Circle</h3></header>
-          <div className="card-body">
-            <div className="carousel-row">
-              <button className="icon-btn" onClick={prevCircle} aria-label="prev">◀</button>
-              <div className="carousel">
+        {/* Hit Circle Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Hit Circle</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <CarouselRow>
+              <IconButton
+                direction="prev"
+                onClick={handlePrevCircle}
+                disabled={isAnimatingCircle}
+              />
+              <Carousel isAnimating={isAnimatingCircle}>
                 {getVisible(hitcircles, selectedCircle).map((it) => (
-                  <div key={it.id + it.position} className={`carousel-item ${it.position} ${circleSlideDir ? `slide-${circleSlideDir}` : ''}`}>
-                    <img src={it.preview} alt={it.name} />
-                    {it.position === 'center' && <div className="item-label">({selectedCircle + 1}/{hitcircles.length})</div>}
-                  </div>
+                  <CarouselItem
+                    key={it.id + it.position}
+                    item={it}
+                    position={it.position}
+                    isAnimating={isAnimatingCircle}
+                    slideDirection={circleSlideDir}
+                    showLabel={true}
+                    currentIndex={selectedCircle}
+                    totalItems={hitcircles.length}
+                  />
                 ))}
-              </div>
-              <button className="icon-btn" onClick={nextCircle} aria-label="next">▶</button>
-            </div>
+              </Carousel>
+              <IconButton
+                direction="next"
+                onClick={handleNextCircle}
+                disabled={isAnimatingCircle}
+              />
+            </CarouselRow>
 
-            <div className="uploader">
-              <div className="uploader-controls">
-                <button
-                  className="trash-btn"
-                  title="Remove selected hit circle"
-                  onClick={() => {
-                    if (hitcircles.length <= 1) {
-                      window.alert('At least one hit circle is required.');
-                      return;
-                    }
-                    if (!window.confirm('Remove selected hit circle?')) return;
-                    const idx = selectedCircle;
-                    try {
-                      const url = hitcircles[idx]?.preview;
-                      if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
-                    } catch (e) {
-                      // ignore
-                    }
-                    setHitcircles((s) => s.filter((_, i) => i !== idx));
-                    const newIndex = Math.max(0, Math.min(selectedCircle, hitcircles.length - 2));
-                    setSelectedCircle(newIndex);
-                  }}
+            <Uploader
+              onDrop={handleDropCircle}
+              onClick={() => fileRefCircle.current?.click()}
+              dropzoneText="Drop hit circle image or click to add"
+            >
+              <input
+                ref={fileRefCircle}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleAddHitcircle(f);
+                  e.currentTarget.value = '';
+                }}
+              />
+            </Uploader>
+            <ControlsRow>
+              <TrashButton
+                onClick={() => handleDeleteCircle(selectedCircle)}
+                title="Remove selected hit circle"
+              />
+              <ControlsRowRight>
+                <Checkbox
+                  label="@2x"
+                  checked={hitcircles2x}
+                  onChange={setHitcircles2x}
+                />
+                <Button
+                  variant="primary"
+                  onClick={() =>
+                    console.log(
+                      'Apply hitcircle',
+                      {
+                        hitcircle: hitcircles[selectedCircle],
+                      },
+                      { hitcircles2x },
+                    )
+                  }
                 >
-                  🗑️
-                </button>
-                <div className="uploader-controls-right">
-                  <label className="checkbox">
-                      <input type="checkbox" checked={hitcircles2x} onChange={(e) => setHitcircles2x(e.target.checked)} />
-                      <span>@2x</span>
-                  </label>
-                  <button className="btn primary" onClick={() => console.log('Apply hitcircle', { hitcircle: hitcircles[selectedCircle] }, { hitcircles2x })}>Apply</button>
-                </div>
-              </div>
-              <div className="dropzone" onDragOver={(e) => e.preventDefault()} onDrop={onDropCircle} onClick={() => fileRefCircle.current?.click()}>
-                Drop hit circle image or click to add
-              </div>
-              <input ref={fileRefCircle} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) addHitcircle(f); e.currentTarget.value = ''; }} />
-            </div>
-          </div>
-        </section>
+                  Apply
+                </Button>
+              </ControlsRowRight>
+            </ControlsRow>
+          </CardBody>
+        </Card>
 
-        <section className="card">
-          <header className="card-header"><h3 className="card-title">Hit Circle Overlay</h3></header>
-          <div className="card-body">
-            <div className="carousel-row">
-              <button className="icon-btn" onClick={prevOverlay} aria-label="prev-overlay">◀</button>
-              <div className="carousel">
+        {/* Overlay Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Hit Circle Overlay</CardTitle>
+          </CardHeader>
+          <CardBody>
+            <CarouselRow>
+              <IconButton
+                direction="prev"
+                onClick={handlePrevOverlay}
+                disabled={isAnimatingOverlay}
+              />
+              <Carousel isAnimating={isAnimatingOverlay}>
                 {getVisible(overlays, selectedOverlay).map((it) => (
-                  <div key={it.id + it.position} className={`carousel-item ${it.position} ${overlaySlideDir ? `slide-${overlaySlideDir}` : ''}`}>
-                    <img src={it.preview} alt={it.name} />
-                    {it.position === 'center' && <div className="item-label">({selectedOverlay + 1}/{overlays.length})</div>}
-                  </div>
+                  <CarouselItem
+                    key={it.id + it.position}
+                    item={it}
+                    position={it.position}
+                    isAnimating={isAnimatingOverlay}
+                    slideDirection={overlaySlideDir}
+                    showLabel={true}
+                    currentIndex={selectedOverlay}
+                    totalItems={overlays.length}
+                  />
                 ))}
-              </div>
-              <button className="icon-btn" onClick={nextOverlay} aria-label="next-overlay">▶</button>
-            </div>
+              </Carousel>
+              <IconButton
+                direction="next"
+                onClick={handleNextOverlay}
+                disabled={isAnimatingOverlay}
+              />
+            </CarouselRow>
 
-            <div className="uploader">
-              <div className="uploader-controls">
-                <button
-                  className="trash-btn"
-                  title="Remove selected overlay"
-                  onClick={() => {
-                    if (overlays.length <= 1) {
-                      window.alert('At least one overlay is required.');
-                      return;
-                    }
-                    if (!window.confirm('Remove selected overlay?')) return;
-                    const idx = selectedOverlay;
-                    try {
-                      const url = overlays[idx]?.preview;
-                      if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
-                    } catch (e) {
-                      // ignore
-                    }
-                    setOverlays((s) => s.filter((_, i) => i !== idx));
-                    const newIndex = Math.max(0, Math.min(selectedOverlay, overlays.length - 2));
-                    setSelectedOverlay(newIndex);
-                  }}
+            <Uploader
+              onDrop={handleDropOverlay}
+              onClick={() => fileRefOverlay.current?.click()}
+              dropzoneText="Drop overlay image or click to add"
+            >
+              <input
+                ref={fileRefOverlay}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={(e) => {
+                  const f = e.target.files?.[0];
+                  if (f) handleAddOverlay(f);
+                  e.currentTarget.value = '';
+                }}
+              />
+            </Uploader>
+            <ControlsRow>
+              <TrashButton
+                onClick={() => handleDeleteOverlay(selectedOverlay)}
+                title="Remove selected overlay"
+              />
+              <ControlsRowRight>
+                <Checkbox
+                  label="@2x"
+                  checked={overlays2x}
+                  onChange={setOverlays2x}
+                />
+                <Button
+                  variant="primary"
+                  onClick={() =>
+                    console.log(
+                      'Apply hitcircle overlay',
+                      {
+                        overlay: overlays[selectedOverlay],
+                      },
+                      { overlays2x },
+                    )
+                  }
                 >
-                  🗑️
-                </button>
-                <div className="uploader-controls-right">
-                  <label className="checkbox">
-                      <input type="checkbox" checked={overlays2x} onChange={(e) => setOverlays2x(e.target.checked)} />
-                      <span>@2x</span>
-                  </label>
-                  <button className="btn primary" onClick={() => console.log('Apply hitcircle overlay', { overlay: overlays[selectedOverlay] }, { overlays2x })}>Apply</button>
-                </div>
-              </div>
-              <div className="dropzone" onDragOver={(e) => e.preventDefault()} onDrop={onDropOverlay} onClick={() => fileRefOverlay.current?.click()}>
-                Drop overlay image or click to add
-              </div>
-              <input ref={fileRefOverlay} type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => { const f = e.target.files?.[0]; if (f) addOverlay(f); e.currentTarget.value = ''; }} />
-            </div>
-          </div>
-        </section>
+                  Apply
+                </Button>
+              </ControlsRowRight>
+            </ControlsRow>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );

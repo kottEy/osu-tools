@@ -1,29 +1,36 @@
 import React, { useState } from 'react';
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  CardTitle,
+} from '../components/shared/Card';
+import {
+  Carousel,
+  CarouselRow,
+  CarouselItem,
+  IconButton,
+  getVisible,
+  type MediaItem,
+} from '../components/shared/Carousel';
+import {
+  Uploader,
+  ControlsRow,
+  ControlsRowRight,
+  TrashButton,
+  Checkbox,
+  Button,
+} from '../components/shared/Uploader';
 import './cursor.css';
-
-type MediaItem = { id: number; name: string; preview: string };
 
 // Demo data - replace with actual data loading logic
 const demoCursors: MediaItem[] = [
   { id: 1, name: 'cursor-1', preview: '/pink-circle-cursor.jpg' },
-  
 ];
 
 const demoTrails: MediaItem[] = [
   { id: 1, name: 'cursortrail-1', preview: '/pink-trail-effect.jpg' },
-
 ];
-
-function getVisible(items: MediaItem[], index: number) {
-  const total = items.length;
-  const prev = (index - 1 + total) % total;
-  const next = (index + 1) % total;
-  return [
-    { ...items[prev], position: 'prev' },
-    { ...items[index], position: 'center' },
-    { ...items[next], position: 'next' },
-  ];
-}
 
 export default function Cursor() {
   const [cursors, setCursors] = useState<MediaItem[]>(demoCursors);
@@ -37,35 +44,81 @@ export default function Cursor() {
   const [useCursorMiddle, setUseCursorMiddle] = useState(false);
   const [cursorDragActive, setCursorDragActive] = useState(false);
   const [trailDragActive, setTrailDragActive] = useState(false);
-  const [cursorSlideDir, setCursorSlideDir] = useState<'left' | 'right'>('right');
+  const [cursorSlideDir, setCursorSlideDir] = useState<'left' | 'right'>(
+    'right',
+  );
   const [trailSlideDir, setTrailSlideDir] = useState<'left' | 'right'>('right');
 
-  const prev = (arr: any[], idx: number, set: (v: number) => void, setDir: (d: 'left' | 'right') => void, isAnimating: boolean, setAnimating: (v: boolean) => void) => {
-    if (isAnimating) return;
-    setAnimating(true);
-    setDir('right');
-    set((idx - 1 + arr.length) % arr.length);
-    setTimeout(() => setAnimating(false), 300);
-  };
-  const next = (arr: any[], idx: number, set: (v: number) => void, setDir: (d: 'left' | 'right') => void, isAnimating: boolean, setAnimating: (v: boolean) => void) => {
-    if (isAnimating) return;
-    setAnimating(true);
-    setDir('left');
-    set((idx + 1) % arr.length);
-    setTimeout(() => setAnimating(false), 300);
+  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const trailInputRef = React.useRef<HTMLInputElement | null>(null);
+
+  /**
+   * Navigate to previous item with animation
+   */
+  const handlePrevCursor = () => {
+    if (isAnimatingCursor) return;
+    setIsAnimatingCursor(true);
+    setCursorSlideDir('right');
+    setSelectedCursor((idx) => (idx - 1 + cursors.length) % cursors.length);
+    setTimeout(() => setIsAnimatingCursor(false), 300);
   };
 
+  /**
+   * Navigate to next item with animation
+   */
+  const handleNextCursor = () => {
+    if (isAnimatingCursor) return;
+    setIsAnimatingCursor(true);
+    setCursorSlideDir('left');
+    setSelectedCursor((idx) => (idx + 1) % cursors.length);
+    setTimeout(() => setIsAnimatingCursor(false), 300);
+  };
+
+  const handlePrevTrail = () => {
+    if (isAnimatingTrail) return;
+    setIsAnimatingTrail(true);
+    setTrailSlideDir('right');
+    setSelectedTrail((idx) => (idx - 1 + trails.length) % trails.length);
+    setTimeout(() => setIsAnimatingTrail(false), 300);
+  };
+
+  const handleNextTrail = () => {
+    if (isAnimatingTrail) return;
+    setIsAnimatingTrail(true);
+    setTrailSlideDir('left');
+    setSelectedTrail((idx) => (idx + 1) % trails.length);
+    setTimeout(() => setIsAnimatingTrail(false), 300);
+  };
+
+  /**
+   * Add new cursor from file
+   */
   const handleAddCursor = (file?: File) => {
     if (!file) return;
-    const newItem: MediaItem = { id: cursors.length + 1, name: file.name || `cursor-${cursors.length + 1}`, preview: URL.createObjectURL(file) };
+    const newItem: MediaItem = {
+      id: cursors.length + 1,
+      name: file.name || `cursor-${cursors.length + 1}`,
+      preview: URL.createObjectURL(file),
+    };
     setCursors((s) => [...s, newItem]);
   };
+
+  /**
+   * Add new trail from file
+   */
   const handleAddTrail = (file?: File) => {
     if (!file) return;
-    const newItem: MediaItem = { id: trails.length + 1, name: file.name || `trail-${trails.length + 1}`, preview: URL.createObjectURL(file) };
+    const newItem: MediaItem = {
+      id: trails.length + 1,
+      name: file.name || `trail-${trails.length + 1}`,
+      preview: URL.createObjectURL(file),
+    };
     setTrails((s) => [...s, newItem]);
   };
 
+  /**
+   * Handle cursor drop event
+   */
   const onCursorDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setCursorDragActive(false);
@@ -73,6 +126,9 @@ export default function Cursor() {
     if (file?.type.startsWith('image/')) handleAddCursor(file);
   };
 
+  /**
+   * Handle trail drop event
+   */
   const onTrailDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setTrailDragActive(false);
@@ -80,72 +136,95 @@ export default function Cursor() {
     if (file?.type.startsWith('image/')) handleAddTrail(file);
   };
 
-  const fileInputRef = React.useRef<HTMLInputElement | null>(null);
-  const trailInputRef = React.useRef<HTMLInputElement | null>(null);
+  /**
+   * Delete cursor at specified index
+   */
+  const handleDeleteCursor = (index: number) => {
+    if (cursors.length <= 1) {
+      window.alert(
+        'At least one cursor is required. Cannot delete the last image.',
+      );
+      return;
+    }
+    if (!window.confirm('Remove selected cursor?')) return;
+
+    try {
+      const url = cursors[index]?.preview;
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
+    } catch (e) {
+      // ignore
+    }
+
+    setCursors((s) => s.filter((_, i) => i !== index));
+    const newIndex = Math.max(0, Math.min(selectedCursor, cursors.length - 2));
+    setSelectedCursor(newIndex);
+  };
+
+  /**
+   * Delete trail at specified index
+   */
+  const handleDeleteTrail = (index: number) => {
+    if (trails.length <= 1) {
+      window.alert(
+        'At least one trail image is required. Cannot delete the last image.',
+      );
+      return;
+    }
+    if (!window.confirm('Remove selected trail?')) return;
+
+    try {
+      const url = trails[index]?.preview;
+      if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
+    } catch (e) {
+      // ignore
+    }
+
+    setTrails((s) => s.filter((_, i) => i !== index));
+    const newIndex = Math.max(0, Math.min(selectedTrail, trails.length - 2));
+    setSelectedTrail(newIndex);
+  };
 
   return (
     <div className="cursor-editor grid two-col page">
-      <section className="card">
-        <header className="card-header">
-          <h3 className="card-title"><span className="dot" /> Cursor</h3>
-        </header>
-        <div className="card-body">
-          <div className="carousel-row">
-            <button className="icon-btn" onClick={() => prev(cursors, selectedCursor, setSelectedCursor, setCursorSlideDir, isAnimatingCursor, setIsAnimatingCursor)} aria-label="prev">◀</button>
-            <div className="carousel">
+      {/* Cursor Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle icon="default">Cursor</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <CarouselRow>
+            <IconButton
+              direction="prev"
+              onClick={handlePrevCursor}
+              disabled={isAnimatingCursor}
+            />
+            <Carousel isAnimating={isAnimatingCursor}>
               {getVisible(cursors, selectedCursor).map((it) => (
-                <div key={it.id + it.position} className={`carousel-item ${it.position} ${isAnimatingCursor ? `slide-${cursorSlideDir}` : ''}`}>
-                  <img src={it.preview} alt={it.name} />
-                  {it.position === 'center' && <div className="item-label">({selectedCursor + 1}/{cursors.length})</div>}
-                </div>
+                <CarouselItem
+                  key={it.id + it.position}
+                  item={it}
+                  position={it.position}
+                  isAnimating={isAnimatingCursor}
+                  slideDirection={cursorSlideDir}
+                  showLabel={true}
+                  currentIndex={selectedCursor}
+                  totalItems={cursors.length}
+                />
               ))}
-            </div>
-            <button className="icon-btn" onClick={() => next(cursors, selectedCursor, setSelectedCursor, setCursorSlideDir, isAnimatingCursor, setIsAnimatingCursor)} aria-label="next">▶</button>
-          </div>
+            </Carousel>
+            <IconButton
+              direction="next"
+              onClick={handleNextCursor}
+              disabled={isAnimatingCursor}
+            />
+          </CarouselRow>
 
-          <div className="row-between">
-            <button
-              className="trash-btn"
-              title="Remove selected cursor"
-              onClick={() => {
-                if (cursors.length <= 1) {
-                  window.alert('At least one cursor is required. Cannot delete the last image.');
-                  return;
-                }
-                if (!window.confirm('Remove selected cursor?')) return;
-                const idx = selectedCursor;
-                try {
-                  const url = cursors[idx]?.preview;
-                  if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
-                } catch (e) {
-                  // ignore
-                }
-                setCursors((s) => s.filter((_, i) => i !== idx));
-                const newIndex = Math.max(0, Math.min(selectedCursor, cursors.length - 2));
-                setSelectedCursor(newIndex);
-              }}
-            >
-              🗑️
-            </button>
-            <div className="controls-right">
-              <label className="checkbox">
-                <input type="checkbox" checked={cursor2x} onChange={(e) => setCursor2x(e.target.checked)} />
-                <span>@2x</span>
-              </label>
-              <button className="btn primary" onClick={() => console.log('Apply cursor', cursors[selectedCursor], { cursor2x })}>Apply</button>
-            </div>
-          </div>
-
-          <div className="uploader">
-            <div
-              className={`dropzone ${cursorDragActive ? 'active' : ''}`}
-              onDragOver={(e) => { e.preventDefault(); setCursorDragActive(true); }}
-              onDragLeave={() => setCursorDragActive(false)}
-              onDrop={onCursorDrop}
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <div className="dropzone-text">Drop cursor image or click to add</div>
-            </div>
+          <Uploader
+            onDrop={onCursorDrop}
+            onClick={() => fileInputRef.current?.click()}
+            isDragActive={cursorDragActive}
+            dropzoneText="Drop cursor image or click to add"
+          >
             <input
               ref={fileInputRef}
               type="file"
@@ -157,75 +236,72 @@ export default function Cursor() {
                 e.currentTarget.value = '';
               }}
             />
-          </div>
-        </div>
-      </section>
+          </Uploader>
+          <ControlsRow>
+            <TrashButton
+              onClick={() => handleDeleteCursor(selectedCursor)}
+              title="Remove selected cursor"
+            />
+            <ControlsRowRight>
+              <Checkbox
+                label="@2x"
+                checked={cursor2x}
+                onChange={(checked) => setCursor2x(checked)}
+              />
+              <Button
+                variant="primary"
+                onClick={() =>
+                  console.log('Apply cursor', cursors[selectedCursor], {
+                    cursor2x,
+                  })
+                }
+              >
+                Apply
+              </Button>
+            </ControlsRowRight>
+          </ControlsRow>
+        </CardBody>
+      </Card>
 
-      <section className="card">
-        <header className="card-header">
-          <h3 className="card-title"><span className="dot accent" /> Cursor Trail</h3>
-        </header>
-        <div className="card-body">
-          <div className="carousel-row">
-            <button className="icon-btn" onClick={() => prev(trails, selectedTrail, setSelectedTrail, setTrailSlideDir, isAnimatingTrail, setIsAnimatingTrail)} aria-label="prev-trail">◀</button>
-            <div className="carousel">
+      {/* Cursor Trail Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle icon="accent">Cursor Trail</CardTitle>
+        </CardHeader>
+        <CardBody>
+          <CarouselRow>
+            <IconButton
+              direction="prev"
+              onClick={handlePrevTrail}
+              disabled={isAnimatingTrail}
+            />
+            <Carousel isAnimating={isAnimatingTrail}>
               {getVisible(trails, selectedTrail).map((it) => (
-                <div key={it.id + it.position} className={`carousel-item ${it.position} ${isAnimatingTrail ? `slide-${trailSlideDir}` : ''}`}>
-                  <img src={it.preview} alt={it.name} />
-                  {it.position === 'center' && <div className="item-label">({selectedTrail + 1}/{trails.length})</div>}
-                </div>
+                <CarouselItem
+                  key={it.id + it.position}
+                  item={it}
+                  position={it.position}
+                  isAnimating={isAnimatingTrail}
+                  slideDirection={trailSlideDir}
+                  showLabel={true}
+                  currentIndex={selectedTrail}
+                  totalItems={trails.length}
+                />
               ))}
-            </div>
-            <button className="icon-btn" onClick={() => next(trails, selectedTrail, setSelectedTrail, setTrailSlideDir, isAnimatingTrail, setIsAnimatingTrail)} aria-label="next-trail">▶</button>
-          </div>
+            </Carousel>
+            <IconButton
+              direction="next"
+              onClick={handleNextTrail}
+              disabled={isAnimatingTrail}
+            />
+          </CarouselRow>
 
-          <div className="row-between">
-            <button
-              className="trash-btn"
-              title="Remove selected trail"
-              onClick={() => {
-                if (trails.length <= 1) {
-                  window.alert('At least one trail image is required. Cannot delete the last image.');
-                  return;
-                }
-                if (!window.confirm('Remove selected trail?')) return;
-                const idx = selectedTrail;
-                try {
-                  const url = trails[idx]?.preview;
-                  if (url?.startsWith('blob:')) URL.revokeObjectURL(url);
-                } catch (e) {
-                  // ignore
-                }
-                setTrails((s) => s.filter((_, i) => i !== idx));
-                const newIndex = Math.max(0, Math.min(selectedTrail, trails.length - 2));
-                setSelectedTrail(newIndex);
-              }}
-            >
-              🗑️
-            </button>
-            <div className="controls-right">
-              <label className="checkbox">
-                <input type="checkbox" checked={trail2x} onChange={(e) => setTrail2x(e.target.checked)} />
-                <span>@2x</span>
-              </label>
-              <label className="checkbox">
-                <input type="checkbox" checked={useCursorMiddle} onChange={(e) => setUseCursorMiddle(e.target.checked)} />
-                <span>cursormiddle</span>
-              </label>
-              <button className="btn primary" onClick={() => console.log('Apply trail', trails[selectedTrail], { trail2x, useCursorMiddle })}>Apply</button>
-            </div>
-          </div>
-
-          <div className="uploader">
-            <div
-              className={`dropzone ${trailDragActive ? 'active' : ''}`}
-              onDragOver={(e) => { e.preventDefault(); setTrailDragActive(true); }}
-              onDragLeave={() => setTrailDragActive(false)}
-              onDrop={onTrailDrop}
-              onClick={() => trailInputRef.current?.click()}
-            >
-              <div className="dropzone-text">Drop trail image or click to add</div>
-            </div>
+          <Uploader
+            onDrop={onTrailDrop}
+            onClick={() => trailInputRef.current?.click()}
+            isDragActive={trailDragActive}
+            dropzoneText="Drop trail image or click to add"
+          >
             <input
               ref={trailInputRef}
               type="file"
@@ -237,9 +313,38 @@ export default function Cursor() {
                 e.currentTarget.value = '';
               }}
             />
-          </div>
-        </div>
-      </section>
+          </Uploader>
+          <ControlsRow>
+            <TrashButton
+              onClick={() => handleDeleteTrail(selectedTrail)}
+              title="Remove selected trail"
+            />
+            <ControlsRowRight>
+              <Checkbox
+                label="@2x"
+                checked={trail2x}
+                onChange={(checked) => setTrail2x(checked)}
+              />
+              <Checkbox
+                label="cursormiddle"
+                checked={useCursorMiddle}
+                onChange={(checked) => setUseCursorMiddle(checked)}
+              />
+              <Button
+                variant="primary"
+                onClick={() =>
+                  console.log('Apply trail', trails[selectedTrail], {
+                    trail2x,
+                    useCursorMiddle,
+                  })
+                }
+              >
+                Apply
+              </Button>
+            </ControlsRowRight>
+          </ControlsRow>
+        </CardBody>
+      </Card>
     </div>
   );
 }
