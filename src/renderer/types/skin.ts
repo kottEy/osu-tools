@@ -24,6 +24,9 @@ export interface SkinColours {
   combo3: string;
   combo4: string;
   combo5: string;
+  combo6: string;
+  combo7: string;
+  combo8: string;
   songSelectActiveText: string;
   songSelectInactiveText: string;
   sliderBorder: string;
@@ -67,6 +70,9 @@ export const DEFAULT_SKIN_INI: SkinIni = {
     combo3: '37,185,239',
     combo4: '23,209,116',
     combo5: '238,120,238',
+    combo6: '',
+    combo7: '',
+    combo8: '',
     songSelectActiveText: '250,250,250',
     songSelectInactiveText: '230,230,230',
     sliderBorder: '120,120,120',
@@ -216,6 +222,15 @@ function parseColoursKey(colours: SkinColours, key: string, value: string) {
     case 'combo5':
       colours.combo5 = value;
       break;
+    case 'combo6':
+      colours.combo6 = value;
+      break;
+    case 'combo7':
+      colours.combo7 = value;
+      break;
+    case 'combo8':
+      colours.combo8 = value;
+      break;
     case 'songselectactivetext':
       colours.songSelectActiveText = value;
       break;
@@ -263,6 +278,15 @@ function parseFontsKey(fonts: SkinFonts, key: string, value: string) {
 export function generateSkinIni(skin: SkinIni): string {
   const boolToStr = (b: boolean) => (b ? '1' : '0');
 
+  const comboLines: string[] = [];
+  for (let i = 1; i <= 8; i += 1) {
+    const key = `combo${i}` as keyof SkinColours;
+    const value = skin.colours[key];
+    if (typeof value === 'string' && value.trim() !== '') {
+      comboLines.push(`Combo${i}: ${value}`);
+    }
+  }
+
   return `[General]
 Name: ${skin.general.name}
 Author: ${skin.general.author}
@@ -282,11 +306,7 @@ AllowSliderBallTint: ${boolToStr(skin.general.allowSliderBallTint)}
 SpinnerFadePlayfield: ${boolToStr(skin.general.spinnerFadePlayfield)}
 
 [Colours]
-Combo1: ${skin.colours.combo1}
-Combo2: ${skin.colours.combo2}
-Combo3: ${skin.colours.combo3}
-Combo4: ${skin.colours.combo4}
-Combo5: ${skin.colours.combo5}
+${comboLines.join('\n')}
 
 SongSelectActiveText: ${skin.colours.songSelectActiveText}
 SongSelectInactiveText: ${skin.colours.songSelectInactiveText}

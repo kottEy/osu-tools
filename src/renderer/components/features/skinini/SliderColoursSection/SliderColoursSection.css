@@ -1,0 +1,15 @@
+/**
+ * SliderColoursSection Component Styles
+ */
+
+.slider-colours-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-4);
+}
+
+@media (max-width: 600px) {
+  .slider-colours-grid {
+    grid-template-columns: 1fr;
+  }
+}

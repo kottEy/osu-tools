@@ -1,0 +1,133 @@
+/**
+ * ColourInput Component Styles
+ */
+
+/* Base styles - compact card layout */
+.colour-input {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+  min-width: 80px;
+  position: relative;
+}
+
+.colour-input:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-hover);
+}
+
+/* Colour picker input */
+.colour-input__color {
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.colour-input__color::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border: none;
+}
+
+.colour-input__color::-webkit-color-swatch {
+  border: none;
+  border-radius: var(--radius-md);
+}
+
+/* Info section */
+.colour-input__info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+
+.colour-input__label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.colour-input__value {
+  font-size: 10px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* Delete button - positioned at top-right, visible on hover */
+.colour-input .trash-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  padding: 2px;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.colour-input .trash-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+.colour-input:hover .trash-btn {
+  opacity: 1;
+}
+
+/* ============================================================================
+   HORIZONTAL VARIANT - for slider colours
+   ============================================================================ */
+.colour-input--horizontal {
+  flex-direction: row;
+  min-width: 180px;
+  padding: var(--space-3) var(--space-4);
+  gap: var(--space-3);
+}
+
+.colour-input--horizontal .colour-input__info {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.colour-input--horizontal .colour-input__color {
+  width: 40px;
+  height: 40px;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 600px) {
+  /* Always show delete button on mobile/touch */
+  .colour-input .trash-btn {
+    opacity: 1;
+  }
+
+  /* Horizontal variant becomes compact on mobile */
+  .colour-input--horizontal {
+    flex-direction: column;
+    min-width: unset;
+  }
+
+  .colour-input--horizontal .colour-input__info {
+    align-items: center;
+    text-align: center;
+  }
+}

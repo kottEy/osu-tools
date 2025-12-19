@@ -1,0 +1,58 @@
+/**
+ * ComboColoursSection Component Styles
+ */
+
+/* Header with count badge */
+.combo-colours-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.combo-colours-header__count {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  background: var(--surface-elevated);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  margin-left: var(--space-2);
+}
+
+.combo-colours-header__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+/* Grid layout for combo colours - centered */
+.combo-colours-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-3);
+}
+
+/* Empty state */
+.combo-colours-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-8) var(--space-4);
+  text-align: center;
+  color: var(--text-tertiary);
+}
+
+.combo-colours-empty__icon {
+  width: 48px;
+  height: 48px;
+  margin-bottom: var(--space-3);
+  opacity: 0.5;
+}
+
+.combo-colours-empty__text {
+  font-size: 14px;
+  margin: 0 0 var(--space-4);
+}
