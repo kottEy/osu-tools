@@ -15,15 +15,25 @@ import './Settings.css';
 export default function Settings() {
   const [osuPath, setOsuPath] = useState<string>('');
   const [pathStatus, setPathStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
+  const [version, setVersion] = useState<string>('v1.0.0');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // 初回起動時にデフォルトパスを設定
   useEffect(() => {
-    const savedPath = localStorage.getItem('osuPath');
-    if (savedPath) {
-      setOsuPath(savedPath);
-      setPathStatus('valid');
-    }
+    loadSettings();
   }, []);
+
+  const loadSettings = async () => {
+    try {
+      const config = await window.electron.ipcRenderer.invoke('config:get') as any;
+      if (config.osuFolder) {
+        setOsuPath(config.osuFolder);
+        setPathStatus('valid');
+      }
+      setVersion(config.version || 'v1.0.0');
+    } catch (error) {
+      console.error('Failed to load settings:', error);
+    }
+  };
 
   const handlePathChange = (value: string) => {
     setOsuPath(value);
@@ -31,26 +41,72 @@ export default function Settings() {
   };
 
   const handleBrowse = async () => {
-    // Electron's dialog would be called here via IPC
-    const path = window.prompt('Enter osu! folder path:', osuPath);
-    if (path) {
-      setOsuPath(path);
-      validatePath(path);
+    try {
+      const result = await window.electron.ipcRenderer.invoke('dialog:selectFolder', {
+        title: 'osu!フォルダを選択',
+        defaultPath: osuPath || undefined,
+      }) as { success: boolean; path?: string; canceled?: boolean };
+
+      if (result.success && result.path) {
+        setOsuPath(result.path);
+        await validateAndSavePath(result.path);
+      }
+    } catch (error) {
+      console.error('Failed to browse folder:', error);
     }
   };
 
-  const validatePath = (path: string) => {
-    // 実際にはElectron IPCでパスの検証を行う
-    if (path.includes('osu!') || path.includes('osu')) {
-      setPathStatus('valid');
-      localStorage.setItem('osuPath', path);
-    } else {
+  const validateAndSavePath = async (path: string) => {
+    setIsLoading(true);
+    try {
+      const result = await window.electron.ipcRenderer.invoke('config:setOsuFolder', path) as {
+        success: boolean;
+        error?: string;
+        currentSkin?: string;
+      };
+
+      if (result.success) {
+        setPathStatus('valid');
+      } else {
+        setPathStatus('invalid');
+        if (result.error) {
+          window.alert(result.error);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to validate path:', error);
       setPathStatus('invalid');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleSavePath = () => {
-    validatePath(osuPath);
+  const handleSavePath = async () => {
+    await validateAndSavePath(osuPath);
+  };
+
+  const handleCheckUpdate = async () => {
+    try {
+      const result = await window.electron.ipcRenderer.invoke('update:check') as {
+        hasUpdate: boolean;
+        currentVersion: string;
+        latestVersion?: string;
+      };
+
+      if (result.hasUpdate) {
+        const shouldUpdate = window.confirm(
+          `新しいバージョン ${result.latestVersion} が利用可能です。\n更新しますか？`
+        );
+        if (shouldUpdate) {
+          await window.electron.ipcRenderer.invoke('update:download');
+        }
+      } else {
+        window.alert('最新バージョンを使用しています');
+      }
+    } catch (error) {
+      console.error('Failed to check update:', error);
+      window.alert('アップデートの確認に失敗しました');
+    }
   };
 
   const getDefaultPath = () => {
@@ -81,15 +137,16 @@ export default function Settings() {
               value={osuPath}
               onChange={(e) => handlePathChange(e.target.value)}
               placeholder={getDefaultPath()}
+              disabled={isLoading}
             />
-            <Button onClick={handleBrowse}>
+            <Button onClick={handleBrowse} disabled={isLoading}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 16, height: 16, marginRight: 6 }}>
                 <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" />
               </svg>
               Browse
             </Button>
-            <Button variant="primary" onClick={handleSavePath}>
-              Save
+            <Button variant="primary" onClick={handleSavePath} disabled={isLoading}>
+              {isLoading ? 'Saving...' : 'Save'}
             </Button>
           </div>
 
@@ -141,12 +198,17 @@ export default function Settings() {
             </div>
             <div className="about-item">
               <span className="about-item__label">Version</span>
-              <span className="about-item__value about-item__value--accent">v1.0.0</span>
+              <span className="about-item__value about-item__value--accent">{version}</span>
             </div>
             <div className="about-item about-item--full">
               <span className="about-item__label">Description</span>
               <span className="about-item__value">A powerful tool for customizing osu! skins with ease</span>
             </div>
+          </div>
+          <div className="about-actions">
+            <Button onClick={handleCheckUpdate}>
+              Check for Updates
+            </Button>
           </div>
         </CardBody>
       </Card>

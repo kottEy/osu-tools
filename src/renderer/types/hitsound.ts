@@ -8,6 +8,7 @@ export type HitsoundSound =
   | 'hitclap'
   | 'hitfinish'
   | 'hitnormal'
+  | 'hitsoft'
   | 'hitwhistle'
   | 'sliderslide'
   | 'slidertick'
@@ -18,6 +19,7 @@ export interface HitsoundFile {
   sound: HitsoundSound;
   file: File | null;
   preview: string | null;
+  isCurrentSkin?: boolean;
 }
 
 export interface Preset {
@@ -44,6 +46,7 @@ export const HITSOUND_COMBINATIONS: { type: HitsoundType; sound: HitsoundSound }
   { type: 'soft', sound: 'hitclap' },
   { type: 'soft', sound: 'hitfinish' },
   { type: 'soft', sound: 'hitnormal' },
+  { type: 'soft', sound: 'hitsoft' },
   { type: 'soft', sound: 'hitwhistle' },
   { type: 'soft', sound: 'sliderslide' },
   { type: 'soft', sound: 'slidertick' },

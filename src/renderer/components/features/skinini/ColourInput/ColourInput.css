@@ -131,3 +131,20 @@
     text-align: center;
   }
 }
+
+/* ============================================================================
+   EMPTY STATE - for unset combo colours
+   ============================================================================ */
+.colour-input--empty {
+  border-style: dashed;
+  opacity: 0.7;
+}
+
+.colour-input--empty .colour-input__color {
+  opacity: 0.5;
+}
+
+.colour-input--empty .colour-input__value {
+  font-style: italic;
+  color: var(--text-tertiary);
+}

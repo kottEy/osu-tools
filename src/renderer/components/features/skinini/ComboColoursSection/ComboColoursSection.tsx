@@ -95,7 +95,7 @@ export function ComboColoursSection({
           <div className="combo-colours-grid">
             {Array.from({ length: count }).map((_, i) => {
               const key = comboKeys[i];
-              const value = colours[key] || '255,255,255';
+              const value = colours[key] || '';
               return (
                 <ColourInput
                   key={key}

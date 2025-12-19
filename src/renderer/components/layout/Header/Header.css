@@ -107,3 +107,15 @@
   transform: translateY(0) scale(0.98);
 }
 
+.header__icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.header__right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+

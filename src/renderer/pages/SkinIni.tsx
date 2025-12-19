@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Button } from '../components/ui';
 import {
   CursorSettingsSection,
@@ -9,10 +9,12 @@ import {
   SkinIni,
   SkinColours,
   DEFAULT_SKIN_INI,
-  parseSkinIni,
-  generateSkinIni,
 } from '../types';
 import './SkinIni.css';
+
+interface SkinIniPageProps {
+  currentSkin?: string;
+}
 
 /**
  * SkinIniPage: skin.ini 編集専用ページ
@@ -22,36 +24,58 @@ import './SkinIni.css';
  * - Combo Colours (0-8個、追加/削除可能)
  * - Slider Colours (Border, Track)
  */
-export default function SkinIniPage() {
+export default function SkinIniPage({ currentSkin }: SkinIniPageProps) {
   const [skinIni, setSkinIni] = useState<SkinIni>(DEFAULT_SKIN_INI);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-  const [comboCount, setComboCount] = useState<number>(5);
+  const [comboCount, setComboCount] = useState<number>(0);
+  const prevSkinRef = useRef<string | undefined>(undefined);
 
-  // 初回起動時にskin.iniを読み込み
+  // 初回起動時とcurrentSkin変更時にskin.iniを読み込み
   useEffect(() => {
     loadSkinIni();
   }, []);
 
+  // currentSkinが変更された時に自動で再読み込み
+  useEffect(() => {
+    if (prevSkinRef.current !== undefined && prevSkinRef.current !== currentSkin) {
+      console.log('Current skin changed:', prevSkinRef.current, '->', currentSkin);
+      loadSkinIni();
+    }
+    prevSkinRef.current = currentSkin;
+  }, [currentSkin]);
+
   const loadSkinIni = async () => {
     setIsLoading(true);
     try {
-      const saved = localStorage.getItem('currentSkinIni');
-      if (saved) {
-        const parsed = parseSkinIni(saved);
+      const result = await window.electron.ipcRenderer.invoke('skinini:read') as {
+        success: boolean;
+        data?: SkinIni;
+        error?: string;
+      };
+      console.log('Loaded skin.ini result:', result);
+      if (result.success && result.data) {
+        const loaded = result.data;
         const next: SkinIni = {
-          general: { ...DEFAULT_SKIN_INI.general, ...parsed.general },
-          colours: { ...DEFAULT_SKIN_INI.colours, ...parsed.colours },
-          fonts: { ...DEFAULT_SKIN_INI.fonts, ...parsed.fonts },
+          general: { ...DEFAULT_SKIN_INI.general, ...loaded.general },
+          colours: { ...DEFAULT_SKIN_INI.colours, ...loaded.colours },
+          fonts: { ...DEFAULT_SKIN_INI.fonts, ...loaded.fonts },
         };
         setSkinIni(next);
 
         // Determine current combo count based on non-empty Combo1..Combo8
         const count = countActiveComboColours(next.colours);
         setComboCount(count);
+      } else {
+        console.error('Failed to load skin.ini:', result.error);
+        // デフォルト値にリセット
+        setSkinIni(DEFAULT_SKIN_INI);
+        setComboCount(5);
       }
     } catch (e) {
       console.error('Failed to load skin.ini:', e);
+      setSkinIni(DEFAULT_SKIN_INI);
+      setComboCount(5);
     }
     setIsLoading(false);
   };
@@ -71,10 +95,16 @@ export default function SkinIniPage() {
   const handleApply = async () => {
     setIsLoading(true);
     try {
-      const content = generateSkinIni(skinIni);
-      localStorage.setItem('currentSkinIni', content);
-      setLastSaved(new Date());
-      alert('skin.ini has been applied successfully!');
+      const result = await window.electron.ipcRenderer.invoke('skinini:save', skinIni) as {
+        success: boolean;
+        error?: string;
+      };
+      if (result.success) {
+        setLastSaved(new Date());
+        alert('skin.ini has been applied successfully!');
+      } else {
+        alert(`Failed to apply skin.ini: ${result.error}`);
+      }
     } catch (e) {
       console.error('Failed to save skin.ini:', e);
       alert('Failed to apply skin.ini');
@@ -159,6 +189,10 @@ export default function SkinIniPage() {
     }));
     setComboCount(comboCount - 1);
   }, [comboCount, skinIni.colours]);
+
+  if (isLoading) {
+    return <div className="skinini-page page loading">skin.ini を読み込み中...</div>;
+  }
 
   return (
     <div className="skinini-page page">

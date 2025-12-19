@@ -1,5 +1,5 @@
 /**
- * 機能コンポーネントのエクスポート
+ * Feature components export
  */
 
 export * from './hitsounds';

@@ -332,3 +332,48 @@
     justify-content: center;
   }
 }
+
+/* ============================================================================
+   SAVE DIALOG OVERLAY
+   ============================================================================ */
+.save-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.save-dialog {
+  background: var(--color-surface);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  min-width: 320px;
+  box-shadow: var(--shadow-xl);
+}
+
+.save-dialog h3 {
+  margin: 0 0 var(--space-4) 0;
+  color: var(--color-text-primary);
+}
+
+.save-dialog input {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  margin-bottom: var(--space-4);
+}
+
+.save-dialog-buttons {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}

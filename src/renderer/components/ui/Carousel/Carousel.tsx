@@ -22,6 +22,8 @@ interface CarouselItemProps {
   showLabel: boolean;
   currentIndex: number;
   totalItems: number;
+  isCurrentSkin?: boolean;
+  hasCurrentSkin?: boolean;
 }
 
 interface IconButtonProps {
@@ -76,9 +78,22 @@ export function CarouselItem({
   showLabel,
   currentIndex,
   totalItems,
+  isCurrentSkin = false,
+  hasCurrentSkin = false,
 }: CarouselItemProps) {
   const animationClass =
     isAnimating && slideDirection ? `slide-${slideDirection}` : '';
+
+  // ラベル表示: Current Skinの場合は"Current Skin"、それ以外はCurrent Skinを除いた番号
+  const getLabelText = () => {
+    if (isCurrentSkin) {
+      return 'Current Skin';
+    }
+    // Current Skinがある場合は、インデックスから1引いた値を表示
+    const adjustedIndex = hasCurrentSkin ? currentIndex : currentIndex + 1;
+    const adjustedTotal = hasCurrentSkin ? totalItems - 1 : totalItems;
+    return `${adjustedIndex}/${adjustedTotal}`;
+  };
 
   return (
     <div
@@ -88,7 +103,7 @@ export function CarouselItem({
       <img src={item.preview} alt={item.name} />
       {position === 'center' && showLabel && (
         <div className="item-label">
-          ({currentIndex + 1}/{totalItems})
+          {getLabelText()}
         </div>
       )}
     </div>

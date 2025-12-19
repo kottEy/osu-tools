@@ -213,3 +213,60 @@
   }
 }
 
+/* ============================================================================
+   SAVE PRESET DIALOG
+   ============================================================================ */
+.save-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.save-dialog {
+  background: var(--bg-primary);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
+  min-width: 320px;
+  max-width: 400px;
+  border: 1px solid var(--border-default);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+}
+
+.save-dialog h3 {
+  margin: 0 0 var(--space-4);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.save-dialog input {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 14px;
+  margin-bottom: var(--space-4);
+}
+
+.save-dialog input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255, 77, 154, 0.15);
+}
+
+.save-dialog-buttons {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+

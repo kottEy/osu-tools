@@ -45,7 +45,8 @@ export function HitsoundTypeSection({
           const entry = hitsounds.find((hs) => hs.type === type && hs.sound === sound);
           const key = `${presetId}-${type}-${sound}`;
           const isPlaying = playingKey === key;
-          const isEmpty = !entry?.file;
+          // fileまたはpreviewがあればfilledとみなす（Current Skinの場合はfile=nullだがpreviewがある）
+          const isEmpty = !entry?.file && !entry?.preview;
 
           return (
             <SoundCard
