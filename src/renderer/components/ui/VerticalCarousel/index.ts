@@ -1,0 +1,1 @@
+export { VerticalCarousel } from './VerticalCarousel';

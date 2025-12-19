@@ -1,69 +1,163 @@
 /**
  * ============================================================================
- * HIT CIRCLE PAGE STYLES
+ * HIT CIRCLE PAGE - World-Class Design
  * ============================================================================
- * Page-specific layout styles for the Hit Circle editor
- * Component styles are imported from individual component CSS files:
- * - Card.css (via Card component)
- * - Carousel.css (via Carousel component)
- * - Uploader.css (via Uploader component)
+ * Apple-inspired layout with hero preview and dual carousels
  */
 
 /* ============================================================================
-   LAYOUT
+   MAIN LAYOUT - Vertical Flow
    ============================================================================ */
-
 .hitcircle-editor {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  height: 100%;
+  gap: var(--space-6);
+  height: auto;
   flex: 1;
   padding: 0;
+  animation: pageEnter var(--duration-normal) var(--ease-out);
+  overflow-y: auto;
 }
 
-/* Top section: Preview */
+/* Top section: Hero Preview */
 .layout-top {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
 }
 
-/* Bottom section: Hit Circle and Overlay carousels */
+/* Bottom section: Dual Carousels */
 .layout-bottom {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
-  flex: 1;
+  gap: var(--space-6);
   min-height: 0;
 }
 
+/* Numbers section */
+.layout-numbers {
+  margin-top: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.numbers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-2);
+}
+
+.numbers-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.numbers-title svg {
+  color: var(--accent);
+}
+
+.numbers-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
 /* ============================================================================
-   PREVIEW AREA
+   HERO PREVIEW SECTION
    ============================================================================ */
+.hitcircle-editor .layout-top .card {
+  background: linear-gradient(
+    135deg,
+    var(--surface) 0%,
+    rgba(255, 77, 154, 0.03) 100%
+  );
+  border: 1px solid rgba(255, 77, 154, 0.15);
+}
 
 .preview-area {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 8px;
+  justify-content: center;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-6);
   flex: 1;
+  position: relative;
+}
+
+/* Background pattern */
+.preview-area::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 30% 50%, rgba(255, 77, 154, 0.08) 0%, transparent 50%),
+    radial-gradient(circle at 70% 50%, rgba(255, 128, 201, 0.06) 0%, transparent 50%);
+  pointer-events: none;
 }
 
 /* Combined preview: base + overlay + number */
 .preview-combined {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 200px;
+  height: 200px;
   flex-shrink: 0;
+  z-index: 1;
+}
+
+/* Glow ring behind preview */
+.preview-combined::before {
+  content: '';
+  position: absolute;
+  inset: -20px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(255, 77, 154, 0.3) 0%,
+    rgba(255, 77, 154, 0.1) 40%,
+    transparent 70%
+  );
+  animation: previewGlow 3s ease-in-out infinite;
+}
+
+@keyframes previewGlow {
+  0%, 100% { 
+    opacity: 0.6; 
+    transform: scale(1);
+  }
+  50% { 
+    opacity: 1; 
+    transform: scale(1.05);
+  }
+}
+
+/* Floating animation */
+.preview-combined {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+.preview-combined:hover {
+  animation-play-state: paused;
+  transform: scale(1.08);
 }
 
 .preview-combined img {
   width: 100%;
   height: 100%;
   object-fit: contain;
-  border-radius: 8px;
+  border-radius: 50%;
+  filter: drop-shadow(0 10px 40px rgba(255, 77, 154, 0.4));
+  transition: transform var(--duration-normal) var(--ease-out);
 }
 
 .preview-base {
@@ -83,28 +177,158 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  font-weight: 800;
-  color: var(--text);
+  font-size: 48px;
+  font-weight: 900;
+  color: white;
+  text-shadow: 
+    0 2px 4px rgba(0, 0, 0, 0.5),
+    0 0 40px rgba(255, 77, 154, 0.5);
   z-index: 3;
+  letter-spacing: -0.05em;
+}
+
+/* Number image from preset */
+.preview-combined .preview-number-image {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  max-width: 70px;
+  max-height: 70px;
+  object-fit: contain;
+  border-radius: 0 !important;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.5)) !important;
+  pointer-events: none;
+}
+
+/* Preview controls */
+.preview-area .controls-row__right {
+  position: relative;
+  z-index: 1;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
 }
 
 /* ============================================================================
-   RESPONSIVE LAYOUT
+   CAROUSEL SECTIONS - Bottom Grid
    ============================================================================ */
+.layout-bottom .card {
+  display: flex;
+  flex-direction: column;
+}
 
-@media (max-width: 900px) {
-  .layout-top,
+.layout-bottom .card__header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.layout-bottom .card__title {
+  font-size: 15px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+}
+
+.layout-bottom .card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--space-4);
+  gap: var(--space-4);
+}
+
+/* Carousel area */
+.layout-bottom .carousel-row {
+  flex: 1;
+  min-height: 120px;
+}
+
+/* Spotlight effect */
+.layout-bottom .carousel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 150px;
+  height: 150px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 77, 154, 0.1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+}
+
+/* Uploader compact style */
+.layout-bottom .uploader {
+  margin-top: auto;
+}
+
+.layout-bottom .dropzone {
+  height: clamp(60px, 15vh, 100px);
+  border-radius: var(--radius-lg);
+}
+
+.layout-bottom .controls-row {
+  padding: var(--space-2) 0;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 1100px) {
   .layout-bottom {
     grid-template-columns: 1fr;
+    gap: var(--space-5);
+  }
+  
+  .preview-combined {
+    width: 160px;
+    height: 160px;
   }
 
+  .preview-combined .preview-number-image {
+    width: 112px;
+    height: 112px;
+    max-width: 112px;
+    max-height: 112px;
+  }
+  
+  .preview-number {
+    font-size: 40px;
+  }
+}
+
+@media (max-width: 600px) {
+  .preview-area {
+    flex-direction: column;
+    padding: var(--space-5);
+    gap: var(--space-5);
+  }
+  
   .preview-combined {
     width: 140px;
     height: 140px;
   }
 
+  .preview-combined .preview-number-image {
+    width: 98px;
+    height: 98px;
+    max-width: 98px;
+    max-height: 98px;
+  }
+  
   .preview-number {
-    font-size: 28px;
+    font-size: 32px;
+  }
+  
+  .preview-area .controls-row__right {
+    flex-direction: row;
+    width: 100%;
+    justify-content: center;
   }
 }

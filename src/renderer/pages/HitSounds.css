@@ -1,0 +1,215 @@
+/**
+ * ============================================================================
+ * HIT SOUNDS PAGE - World-Class Design
+ * ============================================================================
+ * Apple-inspired preset management with expandable cards
+ */
+
+.hitsounds-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  height: 100%;
+  flex: 1;
+  animation: pageEnter var(--duration-normal) var(--ease-out);
+}
+
+/* ============================================================================
+   MAIN CONTAINER CARD
+   ============================================================================ */
+.hitsounds-page > .card {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Header - Hero Style */
+.hitsounds-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6) !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.04) 0%,
+    transparent 100%
+  );
+  border-bottom: 1px solid var(--border-subtle) !important;
+  position: relative;
+}
+
+/* Decorative gradient line */
+.hitsounds-header::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: var(--space-6);
+  right: var(--space-6);
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 77, 154, 0.5),
+    transparent
+  );
+}
+
+.hitsounds-header .card__title {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.header-actions {
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+/* Add button - Prominent CTA */
+.header-actions .btn--primary {
+  padding: var(--space-2) var(--space-5);
+  font-size: 13px;
+}
+
+/* ============================================================================
+   PRESET BODY - Scrollable Area
+   ============================================================================ */
+.preset-body {
+  padding: var(--space-6) !important;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* Custom scrollbar */
+.preset-body::-webkit-scrollbar {
+  width: 8px;
+}
+
+.preset-body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.preset-body::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: var(--radius-full);
+}
+
+.preset-body::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Status message */
+.status-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  padding: var(--space-3) var(--space-4);
+  background: rgba(255, 77, 154, 0.08);
+  border: 1px solid rgba(255, 77, 154, 0.2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-5);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.status-text::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ============================================================================
+   PRESET LIST
+   ============================================================================ */
+.preset-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Empty state */
+.preset-list:empty::after {
+  content: 'No presets yet. Click "Add Preset" to get started.';
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+  color: var(--text-muted);
+  font-size: 14px;
+  text-align: center;
+  border: 2px dashed var(--border-default);
+  border-radius: var(--radius-xl);
+  background: var(--surface);
+}
+
+/* ============================================================================
+   PRESET CARD ENHANCEMENTS
+   ============================================================================ */
+.preset-list .preset-card {
+  transition: 
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.preset-list .preset-card:hover {
+  transform: translateY(-2px);
+}
+
+/* Stagger animation for preset cards */
+.preset-list .preset-card:nth-child(1) { animation-delay: 0ms; }
+.preset-list .preset-card:nth-child(2) { animation-delay: 50ms; }
+.preset-list .preset-card:nth-child(3) { animation-delay: 100ms; }
+.preset-list .preset-card:nth-child(4) { animation-delay: 150ms; }
+.preset-list .preset-card:nth-child(5) { animation-delay: 200ms; }
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.preset-list .preset-card {
+  animation: slideUp var(--duration-normal) var(--ease-out) both;
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 900px) {
+  .hitsounds-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-4) var(--space-5) !important;
+  }
+  
+  .header-actions {
+    width: 100%;
+  }
+  
+  .header-actions .btn--primary {
+    flex: 1;
+  }
+  
+  .preset-body {
+    padding: var(--space-4) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .preset-list {
+    gap: var(--space-4);
+  }
+}
+

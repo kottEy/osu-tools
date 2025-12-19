@@ -1,0 +1,425 @@
+/**
+ * ============================================================================
+ * NUMBER PRESET CARD - Expandable Default Number Container
+ * ============================================================================
+ * Same design as HitSounds PresetCard
+ */
+
+.number-preset-card {
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  transition: 
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.number-preset-card:hover {
+  border-color: rgba(255, 77, 154, 0.3);
+}
+
+/* ============================================================================
+   HEADER
+   ============================================================================ */
+.number-preset-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) !important;
+  cursor: pointer;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 100%
+  ) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.number-preset-card__header:hover {
+  background: rgba(255, 77, 154, 0.03) !important;
+}
+
+.number-preset-card__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--space-4);
+}
+
+.number-preset-card__header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+}
+
+.number-preset-card__header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+/* Expand Button */
+.number-preset-card__expand-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.number-preset-card__expand-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.number-preset-card__expand-btn svg {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.number-preset-card--expanded .number-preset-card__expand-btn {
+  background: rgba(255, 77, 154, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.number-preset-card--expanded .number-preset-card__expand-btn svg {
+  transform: rotate(180deg);
+}
+
+/* Icon Buttons */
+.number-preset-card__icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.number-preset-card__icon-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.number-preset-card__icon-btn--save {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.number-preset-card__icon-btn--save:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+/* Name */
+.number-preset-card__name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.number-preset-card__name-input {
+  flex: 1;
+  min-width: 120px;
+  padding: var(--space-2) var(--space-3);
+  font-size: 16px;
+  font-weight: 600;
+  background: var(--surface);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  outline: none;
+}
+
+/* Count Badge */
+.number-preset-card__count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-elevated);
+  padding: var(--space-1) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-default);
+}
+
+/* ============================================================================
+   BODY
+   ============================================================================ */
+.number-preset-card__body {
+  padding: var(--space-5) !important;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* Preview Hint */
+.number-preset-card__preview-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-size: 12px;
+  color: var(--text-tertiary);
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface-elevated);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+}
+
+.number-preset-card__preview-hint svg {
+  color: var(--accent-pink);
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   SECTION - Standard and @2x groups
+   ============================================================================ */
+.number-preset-card__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.number-preset-card__section--2x {
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.number-preset-card__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--space-1);
+}
+
+.number-preset-card__section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.number-preset-card__section-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: 700;
+  color: white;
+  background: linear-gradient(135deg, var(--accent-pink) 0%, #ff80c9 100%);
+  border-radius: var(--radius-sm);
+  letter-spacing: 0;
+}
+
+.number-preset-card__section-count {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+}
+
+/* Number Grid - Centered with proper spacing */
+.number-preset-card__grid {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: var(--space-2);
+  justify-items: center;
+}
+
+/* Number Slot - Small square like carousel items */
+.number-slot {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-elevated);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+/* @2x slots have a subtle indicator */
+.number-slot--2x {
+  border-color: rgba(255, 77, 154, 0.2);
+}
+
+.number-slot--2x::after {
+  content: '@2x';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  font-size: 7px;
+  font-weight: 700;
+  color: var(--accent-pink);
+  opacity: 0.6;
+}
+
+.number-slot:hover {
+  border-color: var(--accent-pink);
+  background: rgba(255, 77, 154, 0.05);
+}
+
+.number-slot--filled {
+  border-style: solid;
+  border-color: var(--border);
+}
+
+.number-slot--filled:hover {
+  border-color: var(--accent-pink);
+  transform: scale(1.05);
+}
+
+.number-slot--selected {
+  border-color: var(--accent-pink) !important;
+  border-width: 2px;
+  border-style: solid;
+  background: rgba(255, 77, 154, 0.1);
+  box-shadow: 0 0 0 3px rgba(255, 77, 154, 0.2);
+}
+
+.number-slot__image {
+  width: 70%;
+  height: 70%;
+  object-fit: contain;
+}
+
+.number-slot__number {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  opacity: 0.6;
+}
+
+.number-slot__label {
+  position: absolute;
+  bottom: 1px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 8px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  background: var(--surface);
+  padding: 0px 3px;
+  border-radius: var(--radius-sm);
+}
+
+.number-slot__remove {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 18px;
+  height: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.number-slot:hover .number-slot__remove {
+  opacity: 1;
+}
+
+.number-slot__remove svg {
+  width: 10px;
+  height: 10px;
+  color: white;
+}
+
+.number-slot__remove:hover {
+  background: var(--error);
+}
+
+/* Footer */
+.number-preset-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border-subtle);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 900px) {
+  .number-preset-card__grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+  
+  .number-slot {
+    max-width: 52px;
+  }
+  
+  .number-slot__number {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 600px) {
+  .number-preset-card__grid {
+    grid-template-columns: repeat(5, 1fr);
+    gap: var(--space-1);
+  }
+  
+  .number-slot {
+    max-width: 48px;
+  }
+  
+  .number-slot__number {
+    font-size: 12px;
+  }
+  
+  .number-slot__label {
+    font-size: 7px;
+  }
+  
+  .number-slot--2x::after {
+    font-size: 6px;
+  }
+}

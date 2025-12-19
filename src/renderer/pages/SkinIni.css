@@ -1,0 +1,282 @@
+/**
+ * ============================================================================
+ * SKIN.INI PAGE - Configuration Editor
+ * ============================================================================
+ * Clean, focused design for skin.ini editing
+ */
+
+.skinini-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  animation: pageEnter var(--duration-normal) var(--ease-out);
+}
+
+/* ============================================================================
+   HEADER CARD
+   ============================================================================ */
+.skinini-header-card {
+  background: linear-gradient(
+    135deg,
+    var(--surface) 0%,
+    rgba(255, 77, 154, 0.03) 100%
+  );
+  border: 1px solid rgba(255, 77, 154, 0.15);
+}
+
+.skinini-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-6) !important;
+}
+
+.skinini-header__left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.skinini-header__icon {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 77, 154, 0.15) 0%,
+    rgba(255, 128, 201, 0.1) 100%
+  );
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 77, 154, 0.2);
+}
+
+.skinini-header__icon svg {
+  width: 24px;
+  height: 24px;
+  color: var(--accent-pink);
+}
+
+.skinini-header__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.skinini-header__title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+}
+
+.skinini-header__subtitle {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.skinini-header__saved {
+  color: var(--success);
+  font-size: 12px;
+}
+
+.skinini-header__saved::before {
+  content: '•';
+  margin-right: var(--space-2);
+}
+
+.skinini-header__actions {
+  display: flex;
+  gap: var(--space-3);
+}
+
+/* ============================================================================
+   TOGGLE GRID
+   ============================================================================ */
+.skinini-toggles {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.skinini-toggles .toggle {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  justify-content: space-between;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.skinini-toggles .toggle:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-hover);
+}
+
+/* ============================================================================
+   COLOUR INPUTS
+   ============================================================================ */
+.skinini-colours {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-4);
+}
+
+.skinini-colours--slider {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.colour-input {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.colour-input:hover {
+  border-color: var(--border-hover);
+}
+
+.colour-input__color {
+  width: 44px;
+  height: 44px;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  overflow: hidden;
+  flex-shrink: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.colour-input__color::-webkit-color-swatch-wrapper {
+  padding: 0;
+  border: none;
+}
+
+.colour-input__color::-webkit-color-swatch {
+  border: none;
+  border-radius: var(--radius-md);
+}
+
+.colour-input__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.colour-input__label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.colour-input__value {
+  font-size: 11px;
+  font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ============================================================================
+   CARD STYLING
+   ============================================================================ */
+.skinini-page .card__header {
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.skinini-page .card__title {
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.skinini-page .card__body {
+  padding: var(--space-5);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 900px) {
+  .skinini-colours {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .skinini-colours {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .skinini-colours--slider {
+    grid-template-columns: 1fr;
+  }
+
+  .skinini-floating-actions {
+    bottom: var(--space-4);
+    right: var(--space-4);
+    gap: var(--space-2);
+  }
+}
+
+/* ============================================================================
+   FLOATING ACTION BUTTONS
+   ============================================================================ */
+.skinini-floating-actions {
+  position: fixed;
+  bottom: var(--space-6);
+  right: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-glass);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  animation: floatUp var(--duration-normal) var(--ease-out);
+}
+
+@keyframes floatUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.skinini-floating-actions__saved {
+  font-size: 12px;
+  color: var(--success);
+  padding-right: var(--space-3);
+  border-right: 1px solid var(--border);
+}

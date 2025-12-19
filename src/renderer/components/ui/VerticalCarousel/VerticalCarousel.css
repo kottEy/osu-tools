@@ -1,0 +1,333 @@
+/**
+ * ============================================================================
+ * VERTICAL CAROUSEL - Number Preset Selector
+ * ============================================================================
+ * Apple-inspired vertical carousel for selecting number presets
+ */
+
+.v-carousel-container {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-6);
+  height: 100%;
+  min-height: 360px;
+}
+
+/* ============================================================================
+   CAROUSEL WRAPPER
+   ============================================================================ */
+.v-carousel-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  position: relative;
+}
+
+/* Navigation buttons */
+.v-carousel__nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 36px;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.v-carousel__nav svg {
+  width: 18px;
+  height: 18px;
+  color: var(--text-secondary);
+  transition: color var(--duration-fast) var(--ease-out);
+}
+
+.v-carousel__nav:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+}
+
+.v-carousel__nav:hover svg {
+  color: var(--accent-pink);
+}
+
+.v-carousel__nav:active {
+  transform: scale(0.97);
+}
+
+/* ============================================================================
+   CAROUSEL SCROLL AREA
+   ============================================================================ */
+.v-carousel {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.v-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.v-carousel__spacer {
+  height: 80px;
+}
+
+/* ============================================================================
+   CAROUSEL ITEMS
+   ============================================================================ */
+.v-carousel__item {
+  padding: var(--space-3) var(--space-4);
+  margin: var(--space-2);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  background: transparent;
+  border: 1px solid transparent;
+  opacity: 0.5;
+  transform: scale(0.95);
+}
+
+.v-carousel__item:hover {
+  opacity: 0.8;
+  background: var(--surface-elevated);
+}
+
+.v-carousel__item--active {
+  opacity: 1;
+  transform: scale(1);
+  background: linear-gradient(
+    135deg,
+    rgba(255, 77, 154, 0.1) 0%,
+    rgba(255, 128, 201, 0.05) 100%
+  );
+  border-color: var(--accent-pink);
+  box-shadow: 
+    0 0 20px rgba(255, 77, 154, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.v-carousel__item-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.v-carousel__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v-carousel__name-input {
+  flex: 1;
+  background: var(--surface);
+  border: 1px solid var(--accent-pink);
+  border-radius: var(--radius-sm);
+  padding: var(--space-1) var(--space-2);
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+  outline: none;
+}
+
+.v-carousel__count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  background: var(--surface-elevated);
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-full);
+}
+
+.v-carousel__item--active .v-carousel__count {
+  background: rgba(255, 77, 154, 0.2);
+  color: var(--accent-pink);
+}
+
+/* Actions */
+.v-carousel__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  justify-content: flex-end;
+}
+
+.v-carousel__action-btn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.v-carousel__action-btn svg {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+}
+
+.v-carousel__action-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent-pink);
+}
+
+.v-carousel__action-btn:hover svg {
+  color: var(--accent-pink);
+}
+
+.v-carousel__action-btn--danger:hover {
+  border-color: var(--error);
+}
+
+.v-carousel__action-btn--danger:hover svg {
+  color: var(--error);
+}
+
+/* Add button */
+.v-carousel__add-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  background: var(--surface-elevated);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.v-carousel__add-btn svg {
+  width: 16px;
+  height: 16px;
+}
+
+.v-carousel__add-btn:hover {
+  border-color: var(--accent-pink);
+  color: var(--accent-pink);
+  background: rgba(255, 77, 154, 0.05);
+}
+
+/* ============================================================================
+   EDITOR PANEL
+   ============================================================================ */
+.v-carousel__editor {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.v-carousel__editor-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  padding-bottom: var(--space-3);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+/* Number grid */
+.v-carousel__number-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: var(--space-3);
+}
+
+.v-carousel__number-slot {
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-elevated);
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--duration-normal) var(--ease-out);
+  position: relative;
+  overflow: hidden;
+}
+
+.v-carousel__number-slot:hover {
+  border-color: var(--accent-pink);
+  background: rgba(255, 77, 154, 0.05);
+}
+
+.v-carousel__number-slot--filled {
+  border-style: solid;
+  border-color: var(--border);
+}
+
+.v-carousel__number-slot--filled:hover {
+  border-color: var(--accent-pink);
+}
+
+.v-carousel__number-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: var(--space-2);
+}
+
+.v-carousel__number-placeholder {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  opacity: 0.5;
+}
+
+.v-carousel__number-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  border: none;
+  border-radius: var(--radius-full);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity var(--duration-fast) var(--ease-out);
+}
+
+.v-carousel__number-slot:hover .v-carousel__number-remove {
+  opacity: 1;
+}
+
+.v-carousel__number-remove svg {
+  width: 12px;
+  height: 12px;
+  color: white;
+}
+
+.v-carousel__number-remove:hover {
+  background: var(--error);
+}

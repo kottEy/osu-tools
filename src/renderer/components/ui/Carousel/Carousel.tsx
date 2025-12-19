@@ -1,13 +1,9 @@
 import React, { ReactNode } from 'react';
+import type { MediaItem, MediaItemWithPosition, CarouselPosition } from '../../../types';
 import './Carousel.css';
 
-export type CarouselPosition = 'prev' | 'center' | 'next';
-
-export interface MediaItem {
-  id: number;
-  name: string;
-  preview: string;
-}
+// Re-export types for convenience
+export type { MediaItem, CarouselPosition };
 
 interface CarouselRowProps {
   children: ReactNode;
@@ -28,6 +24,12 @@ interface CarouselItemProps {
   totalItems: number;
 }
 
+interface IconButtonProps {
+  direction: 'prev' | 'next';
+  onClick: () => void;
+  disabled?: boolean;
+}
+
 /**
  * getVisible: カルーセル用に表示対象のアイテムを取得
  * 前・現在・次の3つのアイテムを返す
@@ -35,7 +37,7 @@ interface CarouselItemProps {
 export function getVisible(
   items: MediaItem[],
   index: number,
-): Array<MediaItem & { position: CarouselPosition }> {
+): MediaItemWithPosition[] {
   const total = items.length;
   const prev = (index - 1 + total) % total;
   const next = (index + 1) % total;
@@ -97,12 +99,6 @@ export function CarouselItem({
  * IconButton: カルーセルナビゲーション用ボタン
  * 矢印アイコン付きの小さいボタン
  */
-interface IconButtonProps {
-  direction: 'prev' | 'next';
-  onClick: () => void;
-  disabled?: boolean;
-}
-
 export function IconButton({ direction, onClick, disabled }: IconButtonProps) {
   const arrow = direction === 'prev' ? '◀' : '▶';
   const ariaLabel = direction === 'prev' ? 'prev' : 'next';

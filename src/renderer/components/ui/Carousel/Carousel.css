@@ -1,0 +1,194 @@
+/**
+ * ============================================================================
+ * CAROUSEL - Media Gallery
+ * ============================================================================
+ */
+
+.carousel-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+/* ============================================================================
+   ICON BUTTON
+   ============================================================================ */
+.icon-btn {
+  height: 44px;
+  width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.icon-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+  transform: scale(1.05);
+  box-shadow: 0 0 15px rgba(255, 77, 154, 0.2);
+}
+
+.icon-btn:active:not(:disabled) {
+  transform: scale(0.95);
+}
+
+.icon-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ============================================================================
+   CAROUSEL CONTAINER
+   ============================================================================ */
+.carousel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  padding: var(--space-4) 0;
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+}
+
+/* ============================================================================
+   CAROUSEL ITEM
+   ============================================================================ */
+.carousel-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: 
+    transform var(--duration-normal) var(--ease-out),
+    opacity var(--duration-fast) var(--ease-out);
+}
+
+/* Slide animations */
+.carousel-item.slide-left {
+  animation: slideInLeft var(--duration-normal) var(--ease-out) forwards;
+}
+
+.carousel-item.slide-right {
+  animation: slideInRight var(--duration-normal) var(--ease-out) forwards;
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(80px) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(-80px) scale(0.8);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Image styling */
+.carousel-item img {
+  display: block;
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  box-shadow: var(--shadow-md);
+  transition: 
+    box-shadow var(--duration-normal) var(--ease-out),
+    border-color var(--duration-normal) var(--ease-out);
+  border: 2px solid transparent;
+}
+
+/* Position-based scaling */
+.carousel-item.prev,
+.carousel-item.next {
+  transform: scale(0.75);
+  opacity: 0.4;
+  filter: blur(1px);
+}
+
+.carousel-item.prev img,
+.carousel-item.next img {
+  width: clamp(45px, 8vw, 200px);
+  height: auto;
+  box-shadow: var(--shadow-sm);
+}
+
+.carousel-item.center {
+  transform: scale(1.1);
+  opacity: 1;
+  z-index: 2;
+}
+
+.carousel-item.center img {
+  width: clamp(60px, 8vw, 300px);
+  height: auto;
+  border-color: var(--accent);
+  box-shadow: 
+    var(--shadow-lg),
+    0 0 30px rgba(255, 77, 154, 0.25);
+}
+
+.item-label {
+  margin-top: var(--space-3);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  opacity: 0;
+  transform: translateY(-5px);
+  transition: 
+    opacity var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.carousel-item.center .item-label {
+  opacity: 1;
+  transform: translateY(0);
+  color: var(--accent);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 900px) {
+  .carousel {
+    min-height: 150px;
+  }
+
+  .carousel-item.center img {
+    max-width: 75px;
+    max-height: 75px;
+  }
+
+  .carousel-item.prev img,
+  .carousel-item.next img {
+    max-width: 50px;
+    max-height: 50px;
+  }
+}

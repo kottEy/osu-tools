@@ -9,6 +9,7 @@ interface CardProps {
 interface CardHeaderProps {
   children: ReactNode;
   className?: string;
+  onClick?: () => void;
 }
 
 interface CardBodyProps {
@@ -33,8 +34,16 @@ export function Card({ children, className = '' }: CardProps) {
  * CardHeader: カードのヘッダー部分
  * ボーダー下部を持つヘッダー
  */
-export function CardHeader({ children, className = '' }: CardHeaderProps) {
-  return <header className={`card-header ${className}`}>{children}</header>;
+export function CardHeader({ children, className = '', onClick }: CardHeaderProps) {
+  return (
+    <header 
+      className={`card-header ${className}`}
+      onClick={onClick}
+      style={onClick ? { cursor: 'pointer' } : undefined}
+    >
+      {children}
+    </header>
+  );
 }
 
 /**

@@ -1,0 +1,185 @@
+/**
+ * ============================================================================
+ * CARD - Premium Container Component
+ * ============================================================================
+ */
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: 
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-normal) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+/* Glass morphism effect */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 50%,
+    rgba(255, 77, 154, 0.02) 100%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Subtle top highlight */
+.card::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.1),
+    transparent
+  );
+  pointer-events: none;
+}
+
+.card:hover {
+  border-color: var(--border-strong);
+  box-shadow: 
+    var(--shadow-lg),
+    0 0 40px rgba(255, 77, 154, 0.08);
+}
+
+/* ============================================================================
+   CARD HEADER
+   ============================================================================ */
+.card-header {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 100%
+  );
+}
+
+/* ============================================================================
+   CARD TITLE
+   ============================================================================ */
+.card-title {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+/* ============================================================================
+   CARD BODY
+   ============================================================================ */
+.card-body {
+  position: relative;
+  z-index: 1;
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.card-body > :not(:last-child) {
+  margin-bottom: 0;
+}
+
+/* ============================================================================
+   INDICATOR DOT
+   ============================================================================ */
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--radius-full);
+  background: var(--text-tertiary);
+  box-shadow: 0 0 8px rgba(136, 136, 136, 0.3);
+  transition: 
+    background var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.dot.accent {
+  background: var(--accent);
+  box-shadow: 0 0 15px var(--accent-glow);
+  animation: dotPulse 2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* ============================================================================
+   CARD VARIANTS
+   ============================================================================ */
+
+/* Elevated - More prominent */
+.card--elevated {
+  box-shadow: var(--shadow-lg);
+}
+
+.card--elevated:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    var(--shadow-xl),
+    0 0 60px rgba(255, 77, 154, 0.12);
+}
+
+/* Interactive - Clickable cards */
+.card--interactive {
+  cursor: pointer;
+}
+
+.card--interactive:active {
+  transform: scale(0.99);
+}
+
+/* Highlighted - Featured content */
+.card--highlighted {
+  border-color: rgba(255, 77, 154, 0.3);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 600px) {
+  .card-header {
+    padding: var(--space-3) var(--space-4);
+  }
+  
+  .card-body {
+    padding: var(--space-4);
+  }
+  
+  .card-title {
+    font-size: 15px;
+  }
+}
+

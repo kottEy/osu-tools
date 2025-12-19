@@ -1,0 +1,258 @@
+/**
+ * ============================================================================
+ * PRESET CARD - Premium Expandable Container
+ * ============================================================================
+ */
+
+.preset-card {
+  overflow: hidden;
+  border: 1px solid var(--border-default);
+  transition: 
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.preset-card:hover {
+  border-color: rgba(255, 77, 154, 0.3);
+}
+
+/* ============================================================================
+   HEADER - Clickable Expand Area
+   ============================================================================ */
+.preset-card__header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-5) !important;
+  cursor: pointer;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02) 0%,
+    transparent 100%
+  ) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+  transition: background var(--duration-fast) var(--ease-out);
+}
+
+.preset-card__header:hover {
+  background: rgba(255, 77, 154, 0.03) !important;
+}
+
+/* Header Row */
+.preset-card__header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: var(--space-4);
+}
+
+/* Header Left: Expand + Name + Edit Controls */
+.preset-card__header-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0; /* Allow truncation */
+}
+
+/* Header Right: Count + Apply */
+.preset-card__header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  flex-shrink: 0;
+}
+
+/* Expand Button */
+.preset-card__expand-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.preset-card__expand-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.preset-card__expand-btn svg {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.preset-card--expanded .preset-card__expand-btn {
+  background: rgba(255, 77, 154, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.preset-card--expanded .preset-card__expand-btn svg {
+  transform: rotate(180deg);
+}
+
+/* Icon Buttons */
+.preset-card__icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  border: 1px solid var(--border-default);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: 
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.preset-card__icon-btn:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+  color: var(--text-primary);
+  transform: scale(1.05);
+}
+
+.preset-card__icon-btn--save {
+  background: rgba(34, 197, 94, 0.1);
+  border-color: rgba(34, 197, 94, 0.3);
+  color: #22c55e;
+}
+
+.preset-card__icon-btn--save:hover {
+  background: rgba(34, 197, 94, 0.2);
+  border-color: #22c55e;
+  color: #22c55e;
+}
+
+/* Preset Name */
+.preset-card__name {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Editable Name Input */
+.preset-card__name-input {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--accent);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  min-width: 180px;
+  font-size: 15px;
+  font-weight: 600;
+  box-shadow: 0 0 0 3px rgba(255, 77, 154, 0.15);
+  transition: box-shadow var(--duration-fast) var(--ease-out);
+}
+
+.preset-card__name-input:focus {
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(255, 77, 154, 0.25);
+}
+
+/* Sound Count Badge */
+.preset-card__count {
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 500;
+  padding: var(--space-1) var(--space-3);
+  background: var(--surface);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  white-space: nowrap;
+}
+
+.preset-card__count::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Footer */
+.preset-card__footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--border-subtle);
+  margin-top: var(--space-2);
+}
+
+/* ============================================================================
+   BODY - Expandable Content
+   ============================================================================ */
+.preset-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+  padding: var(--space-5) !important;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+/* Sound Types Container */
+.preset-card__types {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+/* ============================================================================
+   RESPONSIVE
+   ============================================================================ */
+@media (max-width: 900px) {
+  .preset-card__header {
+    padding: var(--space-4) !important;
+  }
+  
+  .preset-card__header-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-3);
+  }
+  
+  .preset-card__header-left {
+    width: 100%;
+  }
+  
+  .preset-card__header-right {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .preset-card__body {
+    padding: var(--space-4) !important;
+  }
+}
+
+@media (max-width: 600px) {
+  .preset-card__name {
+    font-size: 15px;
+  }
+}

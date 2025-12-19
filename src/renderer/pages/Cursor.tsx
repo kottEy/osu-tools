@@ -4,24 +4,20 @@ import {
   CardHeader,
   CardBody,
   CardTitle,
-} from '../components/shared/Card';
-import {
   Carousel,
   CarouselRow,
   CarouselItem,
   IconButton,
   getVisible,
-  type MediaItem,
-} from '../components/shared/Carousel';
-import {
   Uploader,
   ControlsRow,
   ControlsRowRight,
   TrashButton,
-  Checkbox,
+  Toggle,
   Button,
-} from '../components/shared/Uploader';
-import './cursor.css';
+} from '../components/ui';
+import type { MediaItem } from '../types';
+import './Cursor.css';
 
 // Demo data - replace with actual data loading logic
 const demoCursors: MediaItem[] = [
@@ -185,7 +181,7 @@ export default function Cursor() {
   };
 
   return (
-    <div className="cursor-editor grid two-col page">
+    <div className="cursor-editor page">
       {/* Cursor Section */}
       <Card>
         <CardHeader>
@@ -242,10 +238,12 @@ export default function Cursor() {
                 title="Remove selected cursor"
               />
               <ControlsRowRight>
-                <Checkbox
+                <Toggle
                   label="@2x"
                   checked={cursor2x}
                   onChange={(checked) => setCursor2x(checked)}
+                  labelPosition="right"
+                  size="sm"
                 />
                 <Button
                   variant="primary"
@@ -319,15 +317,19 @@ export default function Cursor() {
                 title="Remove selected trail"
               />
               <ControlsRowRight>
-                <Checkbox
+                <Toggle
                   label="@2x"
                   checked={trail2x}
                   onChange={(checked) => setTrail2x(checked)}
+                  labelPosition="right"
+                  size="sm"
                 />
-                <Checkbox
+                <Toggle
                   label="cursormiddle"
                   checked={useCursorMiddle}
                   onChange={(checked) => setUseCursorMiddle(checked)}
+                  labelPosition="right"
+                  size="sm"
                 />
                 <Button
                   variant="primary"

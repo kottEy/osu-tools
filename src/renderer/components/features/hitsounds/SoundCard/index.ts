@@ -1,0 +1,1 @@
+export { SoundCard } from './SoundCard';

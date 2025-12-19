@@ -1,26 +1,190 @@
 /**
  * ============================================================================
- * CURSOR PAGE STYLES
+ * CURSOR PAGE - World-Class Design
  * ============================================================================
- * Page-specific layout styles for the Cursor editor
- * Component styles are imported from individual component CSS files:
- * - Card.css (via Card component)
- * - Carousel.css (via Carousel component)
- * - Uploader.css (via Uploader component)
+ * Apple-inspired layout with dramatic visual hierarchy
  */
 
-/* Layout: Two-column grid for Cursor and Trail sections */
 .cursor-editor {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: var(--space-8);
   height: 100%;
   flex: 1;
+  animation: pageEnter var(--duration-normal) var(--ease-out);
+  perspective: 1000px;
 }
 
-/* Responsive: Single column on smaller screens */
-@media (max-width: 900px) {
-  .cursor-editor.two-col {
+/* ============================================================================
+   CARD ENHANCEMENTS - Hero Section Style
+   ============================================================================ */
+.cursor-editor > .card {
+  display: flex;
+  flex-direction: column;
+  transform-style: preserve-3d;
+  transition: transform var(--duration-normal) var(--ease-out);
+}
+
+.cursor-editor > .card:hover {
+  transform: translateZ(10px);
+}
+
+/* Card Header - Section Title with Icon */
+.cursor-editor .card__header {
+  padding: var(--space-5) var(--space-6);
+  border-bottom: 1px solid var(--border-subtle);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.03) 0%,
+    transparent 100%
+  );
+}
+
+.cursor-editor .card__title {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Accent dot before title */
+.cursor-editor .card__title::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--gradient-accent);
+  box-shadow: 0 0 12px rgba(255, 77, 154, 0.6);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+
+/* Card Body - Content Area */
+.cursor-editor .card__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--space-5);
+  gap: var(--space-5);
+  overflow: visible;
+}
+
+/* ============================================================================
+   CAROUSEL AREA - Showcase Style
+   ============================================================================ */
+.cursor-editor .carousel-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-height: 200px;
+  position: relative;
+  padding: 0 var(--space-2);
+  gap: var(--space-3);
+}
+
+/* Ensure icon buttons are visible */
+.cursor-editor .carousel-row .icon-btn {
+  flex-shrink: 0;
+  z-index: 10;
+}
+
+/* Gradient fade edges - positioned inside carousel */
+.cursor-editor .carousel::after,
+.cursor-editor .carousel::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.cursor-editor .carousel::before {
+  left: 0;
+  background: linear-gradient(90deg, var(--bg-secondary), transparent);
+}
+
+.cursor-editor .carousel::after {
+  right: 0;
+  background: linear-gradient(-90deg, var(--bg-secondary), transparent);
+}
+
+/* Center item spotlight effect */
+.cursor-editor .carousel {
+  position: relative;
+}
+
+.cursor-editor .carousel::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 77, 154, 0.15) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ============================================================================
+   UPLOADER AREA - Clean & Minimal
+   ============================================================================ */
+.cursor-editor .uploader {
+  margin-top: auto;
+  gap: var(--space-5);
+}
+
+.cursor-editor .dropzone {
+  height: clamp(80px, 20vh, 160px);
+  border-radius: var(--radius-xl);
+}
+
+/* Controls - Refined Actions */
+.cursor-editor .controls-row {
+  padding: var(--space-3) 0;
+}
+
+.cursor-editor .controls-row__right {
+  gap: var(--space-4);
+}
+
+/* ============================================================================
+   RESPONSIVE - Mobile First
+   ============================================================================ */
+@media (max-width: 1100px) {
+  .cursor-editor {
     grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  
+  .cursor-editor .carousel-row {
+    min-height: 160px;
+  }
+  
+  .cursor-editor .carousel-row::before,
+  .cursor-editor .carousel-row::after {
+    display: none;
+  }
+}
+
+@media (max-width: 600px) {
+  .cursor-editor .card__body {
+    padding: var(--space-4);
+  }
+  
+  .cursor-editor .dropzone {
+    height: 100px;
   }
 }
