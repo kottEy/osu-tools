@@ -292,10 +292,8 @@
   }
 
   .preview-combined .preview-number-image {
-    width: 112px;
-    height: 112px;
-    max-width: 112px;
-    max-height: 112px;
+    max-width: 56px;
+    max-height: 56px;
   }
   
   .preview-number {
@@ -316,10 +314,8 @@
   }
 
   .preview-combined .preview-number-image {
-    width: 98px;
-    height: 98px;
-    max-width: 98px;
-    max-height: 98px;
+    max-width: 49px;
+    max-height: 49px;
   }
   
   .preview-number {
