@@ -7,6 +7,8 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import { app } from 'electron';
+import { getCursorService } from './cursor';
+import { getHitCircleService } from './hitcircle';
 
 // シードデータのバージョン（アップデート時に変更）
 const SEED_VERSION = '1.0.0';
@@ -33,9 +35,12 @@ class SeedService {
     this.seedConfigPath = path.join(this.userDataPath, 'seed-config.json');
     
     // アセットパスの設定（パッケージ済みかどうかで切り替え）
-    this.assetsPath = app.isPackaged
-      ? path.join(process.resourcesPath, 'assets', 'seeds')
-      : path.join(__dirname, '../../../assets/seeds');
+    if (app.isPackaged) {
+      this.assetsPath = path.join(process.resourcesPath, 'assets', 'seeds');
+    } else {
+      // 開発環境: app.getAppPath() はプロジェクトルートを返す
+      this.assetsPath = path.join(app.getAppPath(), 'assets', 'seeds');
+    }
   }
 
   /**
@@ -109,9 +114,12 @@ class SeedService {
   }
 
   /**
-   * 画像系プリセット（cursor, cursortrail, hitcircle, overlay）をシード
+   * 画像系プリセット（cursor, cursortrail, hitcircle, hitcircleoverlay）をシード
+   * 各サービスのadd*メソッドを使用して命名規則に従ったファイル名で保存
    */
-  private seedImagePresets(category: string, targetBasePath: string): string[] {
+  private async seedImagePresets(
+    category: 'cursor' | 'cursortrail' | 'hitcircle' | 'hitcircleoverlay',
+  ): Promise<string[]> {
     const seededPresets: string[] = [];
     const seedPath = path.join(this.assetsPath, category);
 
@@ -120,29 +128,47 @@ class SeedService {
       return seededPresets;
     }
 
-    // シードフォルダ内のファイルをリスト
+    // シードフォルダ内のPNGファイルをリスト
     const files = fs.readdirSync(seedPath).filter((file) => {
       const ext = path.extname(file).toLowerCase();
       return ext === '.png';
     });
 
-    // デフォルトサブカテゴリを作成
-    const defaultSubcategory = 'default';
-    const targetPath = path.join(targetBasePath, defaultSubcategory);
-    
-    if (!fs.existsSync(targetPath)) {
-      fs.mkdirSync(targetPath, { recursive: true });
-    }
+    // カテゴリに応じたサービスとメソッドを取得
+    const cursorService = getCursorService();
+    const hitcircleService = getHitCircleService();
 
     for (const file of files) {
       const srcPath = path.join(seedPath, file);
-      const destPath = path.join(targetPath, file);
+      
+      try {
+        const imageBuffer = fs.readFileSync(srcPath);
+        let result: { success: boolean; savedName?: string; error?: string };
 
-      // 既存ファイルは上書きしない
-      if (!fs.existsSync(destPath)) {
-        fs.copyFileSync(srcPath, destPath);
-        seededPresets.push(`${defaultSubcategory}/${file}`);
-        console.log(`Seeded: ${category}/${defaultSubcategory}/${file}`);
+        // カテゴリに応じたaddメソッドを呼び出し
+        switch (category) {
+          case 'cursor':
+            result = await cursorService.addCursor(imageBuffer, '', 'cursor');
+            break;
+          case 'cursortrail':
+            result = await cursorService.addCursorTrail(imageBuffer, '', 'cursortrail');
+            break;
+          case 'hitcircle':
+            result = await hitcircleService.addHitCircle(imageBuffer, '', 'hitcircle');
+            break;
+          case 'hitcircleoverlay':
+            result = await hitcircleService.addHitCircleOverlay(imageBuffer, '', 'hitcircleoverlay');
+            break;
+        }
+
+        if (result.success && result.savedName) {
+          seededPresets.push(result.savedName);
+          console.log(`Seeded: ${category}/${result.savedName}`);
+        } else if (!result.success) {
+          console.error(`Failed to seed ${category}/${file}: ${result.error}`);
+        }
+      } catch (error) {
+        console.error(`Failed to seed ${category}/${file}:`, error);
       }
     }
 
@@ -254,18 +280,11 @@ class SeedService {
       },
     };
 
-    // 画像系プリセットをシード
-    const cursorPath = path.join(this.userDataPath, 'images', 'cursor');
-    config.seededPresets.cursor = this.seedImagePresets('cursor', cursorPath);
-
-    const cursortrailPath = path.join(this.userDataPath, 'images', 'cursortrail');
-    config.seededPresets.cursortrail = this.seedImagePresets('cursortrail', cursortrailPath);
-
-    const hitcirclePath = path.join(this.userDataPath, 'images', 'hitcircle');
-    config.seededPresets.hitcircle = this.seedImagePresets('hitcircle', hitcirclePath);
-
-    const overlayPath = path.join(this.userDataPath, 'images', 'hitcircleoverlay');
-    config.seededPresets.overlay = this.seedImagePresets('overlay', overlayPath);
+    // 画像系プリセットをシード（サービスのadd*メソッドを使用）
+    config.seededPresets.cursor = await this.seedImagePresets('cursor');
+    config.seededPresets.cursortrail = await this.seedImagePresets('cursortrail');
+    config.seededPresets.hitcircle = await this.seedImagePresets('hitcircle');
+    config.seededPresets.overlay = await this.seedImagePresets('hitcircleoverlay');
 
     // デフォルト数字プリセットをシード
     config.seededPresets.default = this.seedDefaultNumberPresets();
