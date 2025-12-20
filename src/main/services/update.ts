@@ -2,7 +2,7 @@
  * Update Service - アプリケーションのアップデート機能
  */
 import { autoUpdater, UpdateCheckResult } from 'electron-updater';
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import log from 'electron-log';
 import { getConfigService } from './config';
 
@@ -15,6 +15,10 @@ export interface UpdateInfo {
 
 class UpdateService {
   private mainWindow: BrowserWindow | null = null;
+
+  private formatVersion(version: string): string {
+    return version.startsWith('v') ? version : `v${version}`;
+  }
 
   constructor() {
     // ログ設定
@@ -52,7 +56,7 @@ class UpdateService {
 
     autoUpdater.on('update-available', (info) => {
       this.sendToRenderer('update:available', {
-        version: info.version,
+        version: this.formatVersion(info.version),
         releaseNotes: info.releaseNotes,
       });
     });
@@ -92,18 +96,20 @@ class UpdateService {
    * アップデートをチェック
    */
   async checkForUpdates(): Promise<UpdateInfo> {
-    const configService = getConfigService();
-    const currentVersion = configService.getVersion();
+    // source of truth: app.getVersion() (package.json version)
+    const currentVersionRaw = app.getVersion();
+    const currentVersion = this.formatVersion(currentVersionRaw);
 
     try {
       const result: UpdateCheckResult | null = await autoUpdater.checkForUpdates();
 
       if (result && result.updateInfo) {
-        const hasUpdate = result.updateInfo.version !== currentVersion;
+        const latestVersionRaw = result.updateInfo.version;
+        const hasUpdate = latestVersionRaw !== currentVersionRaw;
         return {
           hasUpdate,
           currentVersion,
-          latestVersion: result.updateInfo.version,
+          latestVersion: this.formatVersion(latestVersionRaw),
           releaseNotes: typeof result.updateInfo.releaseNotes === 'string'
             ? result.updateInfo.releaseNotes
             : undefined,

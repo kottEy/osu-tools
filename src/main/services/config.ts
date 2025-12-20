@@ -36,6 +36,18 @@ class ConfigService {
     const userDataPath = app.getPath('userData');
     this.configPath = path.join(userDataPath, 'config.json');
     this.config = this.loadConfig();
+
+    // version は永続化するユーザー設定というより「現在のアプリバージョン」なので、
+    // 起動時に常に app.getVersion() に同期しておく
+    try {
+      const currentAppVersion = `v${app.getVersion()}`;
+      if (this.config.version !== currentAppVersion) {
+        this.config.version = currentAppVersion;
+        this.saveConfig();
+      }
+    } catch (error) {
+      console.error('Failed to sync app version to config:', error);
+    }
   }
 
   /**
