@@ -11,7 +11,7 @@ import { getCursorService } from './cursor';
 import { getHitCircleService } from './hitcircle';
 
 // シードデータのバージョン（アップデート時に変更）
-const SEED_VERSION = '1.0.1';
+const SEED_VERSION = '1.0.0';
 
 interface SeedConfig {
   version: string;
