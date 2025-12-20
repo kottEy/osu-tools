@@ -1,6 +1,6 @@
 {
   "name": "osu-skin-editor",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "A powerful and intuitive osu! skin editor for customizing cursors, hit circles, overlays, and hitsounds",
   "keywords": [
     "osu",
@@ -176,7 +176,8 @@
     "files": [
       "dist",
       "node_modules",
-      "package.json"
+      "package.json",
+      "LICENSE"
     ],
     "mac": {
       "notarize": false,
