@@ -60,7 +60,18 @@ export function useFileUpload(options: UseFileUploadOptions = {}): UseFileUpload
 
   const validateFile = useCallback((file: File): boolean => {
     if (acceptedTypes.length === 0) return true;
-    return acceptedTypes.some((type) => file.type.includes(type.replace('image/', '').replace('audio/', '')));
+    return acceptedTypes.some((type) => {
+      // Support wildcard image/* or audio/*
+      if (type.endsWith('/*')) {
+        const prefix = type.replace('/*', '');
+        return file.type.startsWith(prefix + '/');
+      }
+      // Exact match
+      if (file.type === type) return true;
+      // Fallback (legacy behavior: check suffix like 'png')
+      const substr = type.replace('image/', '').replace('audio/', '');
+      return substr && file.type.includes(substr);
+    });
   }, [acceptedTypes]);
 
   const processFile = useCallback(async (file: File) => {

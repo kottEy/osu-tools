@@ -167,8 +167,8 @@ class HitCircleService {
       return { success: false, error: 'PNG形式のみ対応しています' };
     }
 
-    // 128x128 にリサイズ
-    const resizedBuffer = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE, HITCIRCLE_SIZE);
+    // 256x256 にリサイズ
+    const resizedBuffer = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE_2X, HITCIRCLE_SIZE_2X);
 
     // 直下に保存（subcategoryは使用しない）
     const result = this.saveImageDirect(resizedBuffer, this.hitcircleBasePath, baseName);
@@ -192,8 +192,8 @@ class HitCircleService {
       return { success: false, error: 'PNG形式のみ対応しています' };
     }
 
-    // 128x128 にリサイズ
-    const resizedBuffer = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE, HITCIRCLE_SIZE);
+    // 256x256 にリサイズ（厳密に、切り抜きなしで拡大縮小のみを行う）
+    const resizedBuffer = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE_2X, HITCIRCLE_SIZE_2X);
 
     // 直下に保存（subcategoryは使用しない）
     const result = this.saveImageDirect(resizedBuffer, this.hitcircleOverlayBasePath, baseName);
@@ -227,13 +227,13 @@ class HitCircleService {
     }
 
     try {
-      // 128x128 にリサイズして保存
+      // 256x256 にリサイズして保存（厳密に）
       const resized = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE, HITCIRCLE_SIZE);
       const result = imageService.saveImageToSkin(resized, skinFolderPath, 'hitcircle.png');
       if (!result.success) return result;
 
       if (use2x) {
-        // 256x256 にリサイズして @2x 保存
+        // 512x512 にリサイズして @2x 保存（厳密に）
         const resized2x = imageService.resizeImageExact(imageBuffer, HITCIRCLE_SIZE_2X, HITCIRCLE_SIZE_2X);
         const result2x = imageService.saveImageToSkin(resized2x, skinFolderPath, 'hitcircle@2x.png');
         if (!result2x.success) return result2x;

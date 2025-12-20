@@ -10,3 +10,6 @@ export type { ComboColoursSectionProps } from './ComboColoursSection';
 
 export { SliderColoursSection } from './SliderColoursSection';
 export type { SliderColoursSectionProps } from './SliderColoursSection';
+
+export { FontsSettingsSection } from './FontsSettingsSection';
+export type { FontsSettingsSectionProps } from './FontsSettingsSection';

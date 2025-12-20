@@ -201,7 +201,7 @@ export default function Cursor({ currentSkin }: CursorProps): React.ReactElement
   // --------------------------------------------------------
 
   const handleAddCursor = useCallback(async (file: File) => {
-    if (!file.type.includes('png')) {
+    if (file.type !== 'image/png') {
       window.alert('PNG形式のみ対応しています');
       return;
     }
@@ -294,7 +294,7 @@ export default function Cursor({ currentSkin }: CursorProps): React.ReactElement
   // --------------------------------------------------------
 
   const handleAddTrail = useCallback(async (file: File) => {
-    if (!file.type.includes('png')) {
+    if (file.type !== 'image/png') {
       window.alert('PNG形式のみ対応しています');
       return;
     }

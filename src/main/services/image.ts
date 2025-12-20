@@ -90,7 +90,7 @@ class ImageService {
    */
   resizeImageExact(imageBuffer: Buffer, width: number, height: number): Buffer {
     const image = nativeImage.createFromBuffer(imageBuffer);
-    return image.resize({ width, height }).toPNG();
+    return image.resize({ width, height, quality: 'best' as any }).toPNG();
   }
 
   /**

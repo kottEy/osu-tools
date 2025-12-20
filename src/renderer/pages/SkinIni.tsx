@@ -4,10 +4,12 @@ import {
   CursorSettingsSection,
   ComboColoursSection,
   SliderColoursSection,
+  FontsSettingsSection,
 } from '../components/features/skinini';
 import {
   SkinIni,
   SkinColours,
+  SkinFonts,
   DEFAULT_SKIN_INI,
 } from '../types';
 import './SkinIni.css';
@@ -140,6 +142,17 @@ export default function SkinIniPage({ currentSkin }: SkinIniPageProps) {
     }));
   }, []);
 
+  // Fonts updater
+  const updateFonts = useCallback(<K extends keyof SkinFonts>(
+    key: K,
+    value: SkinFonts[K]
+  ) => {
+    setSkinIni((prev) => ({
+      ...prev,
+      fonts: { ...prev.fonts, [key]: value },
+    }));
+  }, []);
+
   // Combo colour handlers
   const handleComboColourChange = useCallback((index: number, value: string) => {
     const key = `combo${index + 1}` as keyof SkinColours;
@@ -199,6 +212,11 @@ export default function SkinIniPage({ currentSkin }: SkinIniPageProps) {
       <CursorSettingsSection
         skinIni={skinIni}
         onUpdate={updateGeneral}
+      />
+
+      <FontsSettingsSection
+        fonts={skinIni.fonts}
+        onUpdate={updateFonts}
       />
 
       <ComboColoursSection

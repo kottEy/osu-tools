@@ -263,15 +263,42 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
   // ヒットサークル操作
   // --------------------------------------------------------
 
+  // Convert File or dataURL to a 256x256 PNG dataURL (preserve aspect ratio and center with transparent padding)
+  const normalizeTo256 = async (input: File | string): Promise<string> => {
+    const url = typeof input === 'string' ? input : await fileToBase64(input);
+    return await new Promise<string>((resolve, reject) => {
+      const img = new Image();
+      img.onload = () => {
+        const size = 256;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('No canvas context'));
+        ctx.clearRect(0, 0, size, size);
+        // draw transparent background (default)
+        const ratio = Math.min(size / img.width, size / img.height);
+        const newW = Math.round(img.width * ratio);
+        const newH = Math.round(img.height * ratio);
+        const dx = Math.round((size - newW) / 2);
+        const dy = Math.round((size - newH) / 2);
+        ctx.drawImage(img, dx, dy, newW, newH);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      img.onerror = (e) => reject(new Error('Failed to load image'));
+      img.src = url;
+    });
+  };
+
   const handleAddHitcircle = useCallback(async (file: File) => {
-    if (!file.type.includes('png')) {
+    if (file.type !== 'image/png') {
       window.alert('PNG形式のみ対応しています');
       return;
     }
 
     try {
-      const base64 = await fileToBase64(file);
-      const result = await hitcircleApi.add(base64, 'custom', 'hitcircle') as {
+      const normalized = await normalizeTo256(file);
+      const result = await hitcircleApi.add(normalized, 'custom', 'hitcircle') as {
         success: boolean;
         savedName?: string;
         error?: string;
@@ -281,7 +308,7 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
         const newItem: MediaItem = {
           id: hitcircles.length + 1,
           name: result.savedName || `hitcircle-${hitcircles.length + 1}`,
-          preview: base64,
+          preview: normalized,
         };
         setHitcircles((prev) => [...prev, newItem]);
       } else {
@@ -316,7 +343,8 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
 
     setIsApplying(true);
     try {
-      const result = await hitcircleApi.apply(hitcircle.preview, hitcircles2x) as { success: boolean; error?: string };
+      const normalized = await normalizeTo256(hitcircle.preview);
+      const result = await hitcircleApi.apply(normalized, hitcircles2x) as { success: boolean; error?: string };
       if (!result.success) console.error('Failed to apply hitcircle:', result.error);
     } catch (error) {
       console.error('Failed to apply hitcircle:', error);
@@ -345,14 +373,14 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
   // --------------------------------------------------------
 
   const handleAddOverlay = useCallback(async (file: File) => {
-    if (!file.type.includes('png')) {
+    if (file.type !== 'image/png') {
       window.alert('PNG形式のみ対応しています');
       return;
     }
 
     try {
-      const base64 = await fileToBase64(file);
-      const result = await hitcircleApi.addOverlay(base64, 'custom', 'overlay') as {
+      const normalized = await normalizeTo256(file);
+      const result = await hitcircleApi.addOverlay(normalized, 'custom', 'overlay') as {
         success: boolean;
         savedName?: string;
         error?: string;
@@ -362,7 +390,7 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
         const newItem: MediaItem = {
           id: overlays.length + 1,
           name: result.savedName || `overlay-${overlays.length + 1}`,
-          preview: base64,
+          preview: normalized,
         };
         setOverlays((prev) => [...prev, newItem]);
       } else {
@@ -397,7 +425,8 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
 
     setIsApplying(true);
     try {
-      const result = await hitcircleApi.applyOverlay(overlay.preview, overlays2x) as { success: boolean; error?: string };
+      const normalized = await normalizeTo256(overlay.preview);
+      const result = await hitcircleApi.applyOverlay(normalized, overlays2x) as { success: boolean; error?: string };
       if (!result.success) console.error('Failed to apply overlay:', result.error);
     } catch (error) {
       console.error('Failed to apply overlay:', error);
@@ -432,7 +461,9 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
 
     setIsApplying(true);
     try {
-      const result = await hitcircleApi.applyAll(hitcircle.preview, overlay.preview, use2x) as { success: boolean; error?: string };
+      const normalizedHit = await normalizeTo256(hitcircle.preview);
+      const normalizedOverlay = await normalizeTo256(overlay.preview);
+      const result = await hitcircleApi.applyAll(normalizedHit, normalizedOverlay, use2x) as { success: boolean; error?: string };
       if (!result.success) console.error('Failed to apply all:', result.error);
     } catch (error) {
       console.error('Failed to apply all:', error);
@@ -665,8 +696,8 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
           onUse2xChange={setHitcircles2x}
           isApplying={isApplying}
           isSaving={isSaving}
-          dropzoneText="Drop hit circle image or click to add"
-          acceptedFileTypes="image/*"
+          dropzoneText="Drop hit circle image or click to add (PNG only)"
+          acceptedFileTypes="image/png"
         />
 
         <MediaCarouselSection
@@ -688,8 +719,8 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
           onUse2xChange={setOverlays2x}
           isApplying={isApplying}
           isSaving={isSaving}
-          dropzoneText="Drop overlay image or click to add"
-          acceptedFileTypes="image/*"
+          dropzoneText="Drop overlay image or click to add (PNG only)"
+          acceptedFileTypes="image/png"
         />
       </div>
 

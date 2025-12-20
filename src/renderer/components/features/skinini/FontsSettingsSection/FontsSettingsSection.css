@@ -1,0 +1,111 @@
+/**
+ * FontsSettingsSection Component Styles
+ * Simple row-based layout matching CursorSettingsSection
+ */
+
+/* Settings Container */
+.fonts-settings {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* Setting Row - Left label, right input */
+.fonts-setting-row {
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.fonts-setting-row:hover {
+  border-color: var(--border-hover);
+  background: var(--surface-hover);
+}
+
+.fonts-setting-row__label {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.fonts-setting-row__input {
+  width: 80px;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-primary);
+  font-size: 14px;
+  font-family: var(--font-mono);
+  text-align: center;
+  transition: all var(--duration-fast) var(--ease-out);
+}
+
+.fonts-setting-row__input:hover {
+  border-color: var(--border-hover);
+}
+
+.fonts-setting-row__input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+/* Remove spinner arrows for number input */
+.fonts-setting-row__input::-webkit-outer-spin-button,
+.fonts-setting-row__input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.fonts-setting-row__input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* Control group (buttons + input) */
+.fonts-setting-row__control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.fonts-number-btn {
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-out);
+  flex-shrink: 0;
+}
+
+.fonts-number-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.fonts-number-btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.fonts-number-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.fonts-number-btn svg {
+  width: 14px;
+  height: 14px;
+}
+
