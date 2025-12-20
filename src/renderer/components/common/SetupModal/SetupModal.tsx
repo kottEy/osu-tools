@@ -87,7 +87,7 @@ export default function SetupModal({ isOpen, onComplete }: SetupModalProps) {
         <div className="setup-modal__header">
           <div className="setup-modal__logo">st!</div>
           <div className="setup-modal__header-text">
-            <h2 className="setup-modal__title">osu!tool</h2>
+            <h2 className="setup-modal__title">osu! Skin Editor</h2>
             <p className="setup-modal__subtitle">Skin Customizer</p>
           </div>
         </div>

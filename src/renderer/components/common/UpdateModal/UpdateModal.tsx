@@ -1,7 +1,9 @@
 /**
- * UpdateModal - アップデート通知モーダル
+ * UpdateModal - Update Notification Modal
+ * Premium, Apple-inspired design matching the project's design system
  */
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { Button } from '../../ui';
 import './UpdateModal.css';
 
 interface UpdateModalProps {
@@ -25,8 +27,17 @@ export default function UpdateModal({
 }: UpdateModalProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isVisible, setIsVisible] = useState(false);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    if (isOpen) {
+      requestAnimationFrame(() => setIsVisible(true));
+    } else {
+      setIsVisible(false);
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
     if (!isOpen) return;
 
     const unsubProgress = window.electron.ipcRenderer.on('update:download-progress', (data: any) => {
@@ -34,7 +45,6 @@ export default function UpdateModal({
     });
 
     const unsubDownloaded = window.electron.ipcRenderer.on('update:downloaded', () => {
-      // ダウンロード完了後、インストール
       window.electron.ipcRenderer.invoke('update:install');
     });
 
@@ -62,74 +72,102 @@ export default function UpdateModal({
   if (!isOpen) return null;
 
   return (
-    <div className="update-modal-overlay">
-      <div className="update-modal">
+    <div className={`update-modal-overlay ${isVisible ? 'update-modal-overlay--visible' : ''}`}>
+      {/* Ambient glow effects */}
+      <div className="update-modal__ambient-glow update-modal__ambient-glow--1" />
+      <div className="update-modal__ambient-glow update-modal__ambient-glow--2" />
+
+      <div className={`update-modal ${isVisible ? 'update-modal--visible' : ''}`}>
+        {/* Glass morphism highlight */}
+        <div className="update-modal__highlight" />
+
+        {/* Header */}
         <div className="update-modal__header">
-          <h2 className="update-modal__title">
-            <span className="update-modal__icon">🎉</span>
-            新しいバージョンが利用可能です！
-          </h2>
+          <div className="update-modal__icon-wrapper">
+            <div className="update-modal__icon-glow" />
+            <span className="update-modal__icon">↑</span>
+          </div>
+          <div className="update-modal__header-text">
+            <h2 className="update-modal__title">Update Available</h2>
+            <p className="update-modal__subtitle">New version ready to install</p>
+          </div>
         </div>
 
         <div className="update-modal__body">
-          <div className="update-modal__version-info">
+          {/* Version comparison */}
+          <div className="update-modal__version-card">
             <div className="update-modal__version">
-              <span className="update-modal__version-label">現在のバージョン</span>
+              <span className="update-modal__version-label">Current</span>
               <span className="update-modal__version-value">{currentVersion}</span>
             </div>
-            <span className="update-modal__arrow">→</span>
-            <div className="update-modal__version">
-              <span className="update-modal__version-label">新しいバージョン</span>
-              <span className="update-modal__version-value update-modal__version-value--new">
-                {latestVersion}
-              </span>
+            <div className="update-modal__version-arrow">
+              <span className="update-modal__arrow-icon">→</span>
+            </div>
+            <div className="update-modal__version update-modal__version--new">
+              <span className="update-modal__version-label">Latest</span>
+              <span className="update-modal__version-value">{latestVersion}</span>
             </div>
           </div>
 
+          {/* Release notes */}
           {releaseNotes && (
             <div className="update-modal__notes">
-              <h3 className="update-modal__notes-title">更新内容</h3>
+              <div className="update-modal__notes-header">
+                <span className="update-modal__dot" />
+                <span className="update-modal__notes-title">What's New</span>
+              </div>
               <div className="update-modal__notes-content">{releaseNotes}</div>
             </div>
           )}
 
+          {/* Download progress */}
           {isDownloading && (
             <div className="update-modal__progress">
+              <div className="update-modal__progress-header">
+                <span className="update-modal__progress-label">Downloading update...</span>
+                <span className="update-modal__progress-percent">{Math.round(downloadProgress)}%</span>
+              </div>
               <div className="update-modal__progress-bar">
                 <div
                   className="update-modal__progress-fill"
                   style={{ width: `${downloadProgress}%` }}
                 />
               </div>
-              <span className="update-modal__progress-text">
-                ダウンロード中... {Math.round(downloadProgress)}%
-              </span>
             </div>
           )}
         </div>
 
         <div className="update-modal__footer">
-          {!isDownloading && (
+          {!isDownloading ? (
             <>
-              <button
-                className="update-modal__btn update-modal__btn--secondary"
-                onClick={handleIgnore}
-              >
-                二度と表示しない
-              </button>
-              <button
-                className="update-modal__btn update-modal__btn--secondary"
-                onClick={onLater}
-              >
-                また今度
-              </button>
-              <button
-                className="update-modal__btn update-modal__btn--primary"
+              <div className="update-modal__footer-secondary">
+                <Button
+                  onClick={handleIgnore}
+                  className="update-modal__btn-ignore"
+                >
+                  Don't remind me
+                </Button>
+                <Button
+                  onClick={onLater}
+                  className="update-modal__btn-later"
+                >
+                  Later
+                </Button>
+              </div>
+              <Button
+                variant="primary"
                 onClick={handleUpdate}
+                className="update-modal__btn-update"
               >
-                今すぐ更新
-              </button>
+                Update Now
+                <span className="update-modal__btn-arrow">→</span>
+              </Button>
             </>
+          ) : (
+            <div className="update-modal__downloading-hint">
+              <span className="update-modal__spinner" />
+              Please wait while downloading...
+            </div>
           )}
         </div>
       </div>

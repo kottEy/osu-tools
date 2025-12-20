@@ -7,7 +7,7 @@ export default function Sidebar() {
       <div className="sidebar__top">
         <div className="sidebar__logo">st!</div>
         <div className="sidebar__text">
-          <div className="sidebar__title">osu!tool</div>
+          <div className="sidebar__title">osu! Skin Editor</div>
           <div className="sidebar__subtitle">Skin Customizer</div>
         </div>
       </div>
