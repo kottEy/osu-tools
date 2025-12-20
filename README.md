@@ -1,19 +1,11 @@
 <p align="center">
-  <img src="assets/icons/256x256.png" alt="osu! Skin Editor Logo" width="128" height="128">
+  <img src="assets/icons/1024x1024.png" alt="osu! Skin Editor Logo" width="128" height="128">
 </p>
 
 <h1 align="center">osu! Skin Editor</h1>
 
 <p align="center">
-  <strong>🎨 A desktop app to easily customize your osu! skins</strong>
-</p>
-
-<p align="center">
-  <a href="#features">Features</a> •
-  <a href="#installation">Installation</a> •
-  <a href="#usage">Usage</a> •
-  <a href="#development">Development</a> •
-  <a href="#license">License</a>
+  <strong>A desktop app to easily customize your osu! skins</strong>
 </p>
 
 <p align="center">
@@ -35,8 +27,6 @@ Get the latest version from the [**Releases**](https://github.com/kty78/osu-skin
 | Platform | Download |
 |:--|:--|
 | **Windows** | `osu-Skin-Editor-Setup-x.x.x.exe` |
-| **macOS** | `osu-Skin-Editor-x.x.x.dmg` |
-| **Linux** | `osu-Skin-Editor-x.x.x.AppImage` |
 
 ### Windows
 
@@ -44,91 +34,6 @@ Get the latest version from the [**Releases**](https://github.com/kty78/osu-skin
 2. Run the installer
 3. Choose the install location (default recommended)
 4. Launch the app
-
-### macOS
-
-1. Download the `.dmg`
-2. Open the DMG
-3. Drag the app into the Applications folder
-4. On first launch, allow the app in macOS Security settings if prompted
-
-### Linux
-
-1. Download the `.AppImage`
-2. Make it executable: `chmod +x osu-Skin-Editor-*.AppImage`
-3. Run the file
-
----
-
-## 🚀 Usage
-
-### First-time setup
-
-1. **Launch the app**
-2. **Select your osu! folder** – Set your osu! installation folder in Settings
-3. **Choose a skin** – Pick the skin you want to edit from the dropdown
-
-### Editing the cursor
-
-1. Select **Cursor** from the sidebar
-2. Browse presets in the carousel
-3. Drag & drop a new image to upload
-4. Click **Apply** to write changes to the skin
-
-### Editing hitcircles
-
-1. Select **Hitcircle** from the sidebar
-2. Edit hitcircle / overlay / numbers independently
-3. Check the preview area
-4. Click **Apply** for each section
-
----
-
-## 🛠️ Development
-
-### Requirements
-
-- Node.js 18.x+
-- npm 9.x+
-
-### Setup
-
-```bash
-# Clone the repo
-git clone https://github.com/kty78/osu-skin-editor.git
-cd osu-skin-editor
-
-# Install dependencies
-npm install
-
-# Start in development mode
-npm start
-```
-
-### Build
-
-```bash
-# Production build
-npm run build
-
-# Package for distribution
-npm run package
-```
-
-### Project structure
-
-```
-src/
-├── main/           # Electron main process
-│   ├── services/   # Backend services
-│   └── ipcHandlers/# IPC handlers
-├── renderer/       # React frontend
-│   ├── components/ # UI components
-│   ├── pages/      # Pages
-│   ├── hooks/      # Custom hooks
-│   └── context/    # React context
-└── shared/         # Shared types
-```
 
 ---
 
@@ -144,8 +49,3 @@ This project is licensed under the [MIT License](LICENSE).
 - [Electron React Boilerplate](https://electron-react-boilerplate.js.org/) – Project base
 - [Electron](https://www.electronjs.org/) – Cross-platform desktop framework
 
----
-
-<p align="center">
-  Made with ❤️ for the osu! community
-</p>
