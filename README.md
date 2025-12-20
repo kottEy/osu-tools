@@ -105,7 +105,7 @@ Get the latest version from the [**Releases**](https://github.com/kottEy/osu-too
 
 | Platform | Download |
 |:--|:--|
-| **Windows** | `osu-Skin-Editor-Setup-x.x.x.exe` |
+| **Windows** | `osu-skin-editor-setup-x.x.x.exe` |
 
 ### Windows
 
