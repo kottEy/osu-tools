@@ -1,7 +1,7 @@
 {
   "name": "osu-skin-editor",
   "version": "1.0.0",
-  "description": "A powerful and intuitive osu! skin editor for customizing cursors, hit circles, overlays, and hitsounds",
+  "description": "osu! skin editor for customizing cursors, hit circles, overlays, and hitsounds",
   "license": "MIT",
   "author": {
     "name": "kty78",
