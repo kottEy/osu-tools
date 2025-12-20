@@ -89,7 +89,9 @@ export type Channels =
   | 'update:error'
   | 'update:available-on-startup'
   // App
-  | 'app:startup';
+  | 'app:startup'
+  // Shell
+  | 'shell:openExternal';
 
 const electronHandler = {
   ipcRenderer: {

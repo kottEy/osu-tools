@@ -301,6 +301,72 @@ export default function Settings() {
           </div>
         </CardBody>
       </Card>
+
+      {/* Licenses Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 18, height: 18, marginRight: 8 }}>
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+              <polyline points="10 9 9 9 8 9" />
+            </svg>
+            Open Source Licenses
+          </CardTitle>
+        </CardHeader>
+        <CardBody>
+          <p className="settings-description">
+            This application is built using the following open source software:
+          </p>
+          <div className="license-list">
+            <div className="license-item">
+              <div className="license-item__header">
+                <span className="license-item__name">Electron</span>
+                <span className="license-item__badge">MIT License</span>
+              </div>
+              <p className="license-item__description">
+                Build cross-platform desktop apps with JavaScript, HTML, and CSS.
+              </p>
+              <a 
+                href="https://github.com/electron/electron/blob/main/LICENSE" 
+                className="license-item__link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.electron.ipcRenderer.invoke('shell:openExternal', 'https://github.com/electron/electron/blob/main/LICENSE');
+                }}
+              >
+                View License →
+              </a>
+            </div>
+            <div className="license-item">
+              <div className="license-item__header">
+                <span className="license-item__name">Electron React Boilerplate</span>
+                <span className="license-item__badge">MIT License</span>
+              </div>
+              <p className="license-item__description">
+                A Foundation for Scalable Cross-Platform Apps with Electron and React.
+              </p>
+              <a 
+                href="https://github.com/electron-react-boilerplate/electron-react-boilerplate/blob/main/LICENSE" 
+                className="license-item__link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.electron.ipcRenderer.invoke('shell:openExternal', 'https://github.com/electron-react-boilerplate/electron-react-boilerplate/blob/main/LICENSE');
+                }}
+              >
+                View License →
+              </a>
+            </div>
+          </div>
+          <div className="license-notice">
+            <p>
+              MIT License permits reuse within proprietary software provided that all copies include the MIT License terms.
+            </p>
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 }

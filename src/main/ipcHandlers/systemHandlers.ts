@@ -1,7 +1,7 @@
 /**
  * SkinIni & Update IPC Handlers - skin.iniとアップデート関連のIPCハンドラー
  */
-import { ipcMain, BrowserWindow } from 'electron';
+import { ipcMain, BrowserWindow, shell } from 'electron';
 import {
   getSkinIniService,
   getUpdateService,
@@ -103,5 +103,15 @@ export function registerStartupHandlers(): void {
       needsSetup,
       isValidOsuFolder,
     };
+  });
+}
+
+/**
+ * Shell関連のIPCハンドラーを登録
+ */
+export function registerShellHandlers(): void {
+  ipcMain.handle('shell:openExternal', async (_, url: string) => {
+    await shell.openExternal(url);
+    return { success: true };
   });
 }

@@ -11,6 +11,7 @@ import {
   registerSkinIniHandlers,
   registerUpdateHandlers,
   registerStartupHandlers,
+  registerShellHandlers,
 } from './systemHandlers';
 
 /**
@@ -34,6 +35,7 @@ export function registerAllIpcHandlers(mainWindow: BrowserWindow): void {
   registerSkinIniHandlers();
   registerUpdateHandlers(mainWindow);
   registerStartupHandlers();
+  registerShellHandlers();
 }
 
 // 個別エクスポート
@@ -46,4 +48,5 @@ export {
   registerSkinIniHandlers,
   registerUpdateHandlers,
   registerStartupHandlers,
+  registerShellHandlers,
 } from './systemHandlers';
