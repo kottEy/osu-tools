@@ -17,9 +17,34 @@ export default function Settings() {
   const [pathStatus, setPathStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
   const [version, setVersion] = useState<string>('v1.0.0');
   const [isLoading, setIsLoading] = useState(false);
+  
+  // Update states
+  const [updateStatus, setUpdateStatus] = useState<'idle' | 'checking' | 'downloading' | 'downloaded' | 'error' | 'no-update'>('idle');
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [latestVersion, setLatestVersion] = useState<string>('');
 
   useEffect(() => {
     loadSettings();
+    
+    // Update event listeners
+    const unsubProgress = window.electron.ipcRenderer.on('update:download-progress', (data: any) => {
+      setDownloadProgress(data.percent || 0);
+    });
+
+    const unsubDownloaded = window.electron.ipcRenderer.on('update:downloaded', () => {
+      setUpdateStatus('downloaded');
+    });
+
+    const unsubError = window.electron.ipcRenderer.on('update:error', (data: any) => {
+      console.error('Update error:', data?.message);
+      setUpdateStatus('error');
+    });
+
+    return () => {
+      unsubProgress();
+      unsubDownloaded();
+      unsubError();
+    };
   }, []);
 
   const loadSettings = async () => {
@@ -86,6 +111,7 @@ export default function Settings() {
   };
 
   const handleCheckUpdate = async () => {
+    setUpdateStatus('checking');
     try {
       const result = await window.electron.ipcRenderer.invoke('update:check') as {
         hasUpdate: boolean;
@@ -94,19 +120,30 @@ export default function Settings() {
       };
 
       if (result.hasUpdate) {
+        setLatestVersion(result.latestVersion || '');
         const shouldUpdate = window.confirm(
           `新しいバージョン ${result.latestVersion} が利用可能です。\n更新しますか？`
         );
         if (shouldUpdate) {
+          setUpdateStatus('downloading');
+          setDownloadProgress(0);
           await window.electron.ipcRenderer.invoke('update:download');
+        } else {
+          setUpdateStatus('idle');
         }
       } else {
-        window.alert('最新バージョンを使用しています');
+        setUpdateStatus('no-update');
+        setTimeout(() => setUpdateStatus('idle'), 3000);
       }
     } catch (error) {
       console.error('Failed to check update:', error);
-      window.alert('アップデートの確認に失敗しました');
+      setUpdateStatus('error');
+      setTimeout(() => setUpdateStatus('idle'), 3000);
     }
+  };
+
+  const handleInstallUpdate = async () => {
+    await window.electron.ipcRenderer.invoke('update:install');
   };
 
   const getDefaultPath = () => {
@@ -206,9 +243,61 @@ export default function Settings() {
             </div>
           </div>
           <div className="about-actions">
-            <Button onClick={handleCheckUpdate}>
-              Check for Updates
-            </Button>
+            {updateStatus === 'idle' && (
+              <Button onClick={handleCheckUpdate}>
+                Check for Updates
+              </Button>
+            )}
+            
+            {updateStatus === 'checking' && (
+              <div className="update-status">
+                <span className="update-spinner" />
+                <span>Checking for updates...</span>
+              </div>
+            )}
+            
+            {updateStatus === 'downloading' && (
+              <div className="update-status update-status--downloading">
+                <div className="update-progress-info">
+                  <span className="update-spinner" />
+                  <span>Downloading update... {Math.round(downloadProgress)}%</span>
+                </div>
+                <div className="update-progress-bar">
+                  <div 
+                    className="update-progress-fill" 
+                    style={{ width: `${downloadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
+            
+            {updateStatus === 'downloaded' && (
+              <div className="update-status update-status--success">
+                <div className="update-downloaded-message">
+                  <span className="update-check-icon">✓</span>
+                  <span>Update downloaded! Ready to install.</span>
+                </div>
+                <Button variant="primary" onClick={handleInstallUpdate}>
+                  Restart & Install
+                </Button>
+              </div>
+            )}
+            
+            {updateStatus === 'no-update' && (
+              <div className="update-status update-status--info">
+                <span className="update-check-icon">✓</span>
+                <span>You're using the latest version</span>
+              </div>
+            )}
+            
+            {updateStatus === 'error' && (
+              <div className="update-status update-status--error">
+                <span>Failed to check for updates</span>
+                <Button onClick={handleCheckUpdate}>
+                  Retry
+                </Button>
+              </div>
+            )}
           </div>
         </CardBody>
       </Card>

@@ -239,3 +239,99 @@
 .about-item__value--accent {
   color: var(--accent-pink);
 }
+
+/* ============================================================================
+   UPDATE STATUS
+   ============================================================================ */
+.update-status {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.update-status--downloading {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-2);
+}
+
+.update-progress-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.update-progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--surface);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.update-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-pink), var(--accent-pink-light));
+  border-radius: 3px;
+  transition: width 0.3s ease;
+}
+
+.update-status--success {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-3);
+  border-color: rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.05);
+}
+
+.update-downloaded-message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.update-check-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(74, 222, 128, 0.2);
+  border-radius: 50%;
+  font-size: 12px;
+  color: #4ade80;
+}
+
+.update-status--info {
+  border-color: rgba(74, 222, 128, 0.3);
+  background: rgba(74, 222, 128, 0.05);
+  color: #4ade80;
+}
+
+.update-status--error {
+  border-color: rgba(248, 113, 113, 0.3);
+  background: rgba(248, 113, 113, 0.05);
+  color: #f87171;
+  justify-content: space-between;
+}
+
+.update-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--border);
+  border-top-color: var(--accent-pink);
+  border-radius: 50%;
+  animation: updateSpin 0.8s linear infinite;
+}
+
+@keyframes updateSpin {
+  to { transform: rotate(360deg); }
+}
