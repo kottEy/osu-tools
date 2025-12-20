@@ -1,12 +1,20 @@
 {
   "name": "osu-skin-editor",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "osu! skin editor for customizing cursors, hit circles, overlays, and hitsounds",
   "license": "MIT",
   "author": {
-    "name": "kty78",
-    "url": "https://github.com/kty78"
+    "name": "kottEy",
+    "url": "https://github.com/kottEy"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kottEy/osu-tools"
+  },
+  "bugs": {
+    "url": "https://github.com/kottEy/osu-tools/issues"
+  },
+  "homepage": "https://github.com/kottEy/osu-tools#readme",
   "main": "./dist/main/main.js",
   "scripts": {
     "rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
