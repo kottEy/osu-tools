@@ -466,7 +466,7 @@ export default function Cursor({ currentSkin }: CursorProps) {
             <IconButton
               direction="prev"
               onClick={handlePrevCursor}
-              disabled={isAnimatingCursor || cursors.length <= 1}
+              disabled={isAnimatingCursor}
             />
             <Carousel isAnimating={isAnimatingCursor}>
               {getVisible(cursors, selectedCursor).map((it) => (
@@ -487,7 +487,7 @@ export default function Cursor({ currentSkin }: CursorProps) {
             <IconButton
               direction="next"
               onClick={handleNextCursor}
-              disabled={isAnimatingCursor || cursors.length <= 1}
+              disabled={isAnimatingCursor}
             />
           </CarouselRow>
 
@@ -555,7 +555,7 @@ export default function Cursor({ currentSkin }: CursorProps) {
             <IconButton
               direction="prev"
               onClick={handlePrevTrail}
-              disabled={isAnimatingTrail || trails.length <= 1}
+              disabled={isAnimatingTrail}
             />
             <Carousel isAnimating={isAnimatingTrail}>
               {getVisible(trails, selectedTrail).map((it) => (
@@ -576,7 +576,7 @@ export default function Cursor({ currentSkin }: CursorProps) {
             <IconButton
               direction="next"
               onClick={handleNextTrail}
-              disabled={isAnimatingTrail || trails.length <= 1}
+              disabled={isAnimatingTrail}
             />
           </CarouselRow>
 
