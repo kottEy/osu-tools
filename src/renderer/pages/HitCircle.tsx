@@ -70,6 +70,8 @@ const hitcircleApi = {
     window.electron.ipcRenderer.invoke('hitcircle:createNumberPreset', name),
   deleteNumberPreset: (id: string) =>
     window.electron.ipcRenderer.invoke('hitcircle:deleteNumberPreset', id),
+  renameNumberPreset: (oldName: string, newName: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:renameNumberPreset', oldName, newName),
   applyNumberPreset: (id: string, use2x: boolean) =>
     window.electron.ipcRenderer.invoke('hitcircle:applyNumberPreset', id, use2x),
   applyCurrentSkinNumbersCache: () =>
@@ -477,10 +479,24 @@ export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactE
     setEditingName(preset.name);
   }, []);
 
-  const handleSaveName = useCallback((id: string, name: string) => {
-    setNumberPresets((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
+  const handleSaveName = useCallback(async (id: string, name: string) => {
+    const preset = numberPresets.find((p) => p.id === id);
+    if (!preset) return;
+
+    try {
+      const result = await hitcircleApi.renameNumberPreset(preset.name, name) as { success: boolean; error?: string };
+      if (result.success) {
+        setNumberPresets((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
+      } else {
+        console.error('Failed to rename preset:', result.error);
+        window.alert(result.error || 'プリセット名の変更に失敗しました');
+      }
+    } catch (error) {
+      console.error('Failed to rename preset:', error);
+      window.alert('プリセット名の変更に失敗しました');
+    }
     setEditingPresetId(null);
-  }, []);
+  }, [numberPresets]);
 
   const handleDeletePreset = useCallback(async (id: string) => {
     try {
