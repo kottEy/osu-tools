@@ -26,45 +26,6 @@
 
 ---
 
-## ✨ Features
-
-<table>
-  <tr>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Computer%20mouse/3D/computer_mouse_3d.png" width="64"><br>
-      <strong>Cursor Editor</strong><br>
-      <sub>Customize cursor and cursor trail</sub>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Red%20circle/3D/red_circle_3d.png" width="64"><br>
-      <strong>Hitcircle Editor</strong><br>
-      <sub>Edit hitcircles and overlays</sub>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Input%20numbers/3D/input_numbers_3d.png" width="64"><br>
-      <strong>Number Presets</strong><br>
-      <sub>Create and manage combo number presets</sub>
-    </td>
-    <td align="center" width="25%">
-      <img src="https://raw.githubusercontent.com/microsoft/fluentui-emoji/main/assets/Speaker%20high%20volume/3D/speaker_high_volume_3d.png" width="64"><br>
-      <strong>Hitsound Editor</strong><br>
-      <sub>Customize hitsounds</sub>
-    </td>
-  </tr>
-</table>
-
-### 🎯 Highlights
-
-- **🖱️ Cursor customization** – Drag & drop to update cursor images
-- **⭕ Hitcircle editing** – Edit hitcircles and overlays with real-time preview
-- **🔢 Number presets** – Create and manage presets for digits 0–9
-- **🔊 Hitsound setup** – Apply custom hitsounds
-- **📁 Multi-skin support** – Automatically detects skins in your osu! folder
-- **💾 Preset saving** – Save your favorite settings as presets
-- **🎨 Real-time preview** – See changes immediately
-
----
-
 ## 📥 Installation
 
 ### Download
