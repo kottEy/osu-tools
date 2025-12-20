@@ -15,7 +15,7 @@ import './Settings.css';
 export default function Settings() {
   const [osuPath, setOsuPath] = useState<string>('');
   const [pathStatus, setPathStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
-  const [version, setVersion] = useState<string>('v1.0.0');
+  const [version, setVersion] = useState<string>('v1.0.3');
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
