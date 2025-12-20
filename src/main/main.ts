@@ -10,20 +10,14 @@
  */
 import path from 'path';
 import { app, BrowserWindow, shell } from 'electron';
-import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { registerIpcHandlers } from './ipcHandlers';
 import { getSeedService } from './services';
 
-class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
+// Note: autoUpdater is now managed by UpdateService in services/update.ts
+log.transports.file.level = 'info';
 
 let mainWindow: BrowserWindow | null = null;
 
@@ -109,9 +103,7 @@ const createWindow = async () => {
     return { action: 'deny' };
   });
 
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater();
+  // Note: Auto updates are handled by UpdateService via IPC handlers
 };
 
 /**

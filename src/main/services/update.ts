@@ -21,6 +21,13 @@ class UpdateService {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
 
+    // GitHubリリースの設定
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'kottEy',
+      repo: 'osu-tools',
+    });
+
     // 自動ダウンロードを無効化（ユーザー確認後にダウンロード）
     autoUpdater.autoDownload = false;
     autoUpdater.autoInstallOnAppQuit = true;
