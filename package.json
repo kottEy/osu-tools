@@ -219,7 +219,8 @@
       "allowToChangeInstallationDirectory": true,
       "installerIcon": "assets/icons/icon.ico",
       "uninstallerIcon": "assets/icons/icon.ico",
-      "installerHeaderIcon": "assets/icons/icon.ico"
+      "installerHeaderIcon": "assets/icons/icon.ico",
+      "artifactName": "${name}-setup-${version}.${ext}"
     },
     "linux": {
       "target": [
