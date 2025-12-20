@@ -22,7 +22,7 @@
 
 ### Download
 
-Get the latest version from the [**Releases**](https://github.com/kty78/osu-skin-editor/releases) page.
+Get the latest version from the [**Releases**](https://github.com/kottEy/osu-tools/releases) page.
 
 | Platform | Download |
 |:--|:--|
