@@ -10,3 +10,6 @@ export * from './ui';
 
 // Feature components
 export * from './features';
+
+// Common components
+export * from './common';

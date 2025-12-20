@@ -1,42 +1,145 @@
-import React, { useState, useEffect, useRef } from 'react';
+/**
+ * HitCircle Editor Page - ヒットサークル編集ページ
+ * 
+ * ヒットサークル、オーバーレイ、数字プリセットの管理・適用を行う
+ */
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Card,
   CardHeader,
   CardBody,
   CardTitle,
-  Carousel,
-  CarouselRow,
-  CarouselItem,
-  IconButton,
-  getVisible,
-  Uploader,
-  ControlsRow,
-  ControlsRowRight,
-  TrashButton,
-  Toggle,
   Button,
+  Toggle,
 } from '../components/ui';
+import { MediaCarouselSection } from '../components/common';
 import { NumberPresetCard } from '../components/features/numbers';
+import { useCarousel, fileToBase64 } from '../hooks';
 import type { MediaItem, NumberPreset } from '../types';
 import { createEmptyNumberPreset } from '../types';
+import { ControlsRowRight } from '../components/ui';
 import './HitCircle.css';
+
+// ============================================================
+// 型定義
+// ============================================================
 
 interface HitCircleProps {
   currentSkin?: string;
 }
 
-export default function HitCircle({ currentSkin }: HitCircleProps) {
+interface CurrentSkinData {
+  hitcircle: string | null;
+  hitcircleOverlay: string | null;
+}
+
+// ============================================================
+// IPC API 関数
+// ============================================================
+
+const hitcircleApi = {
+  // ヒットサークル関連
+  getList: () => window.electron.ipcRenderer.invoke('hitcircle:getList'),
+  getOverlayList: () => window.electron.ipcRenderer.invoke('hitcircle:getOverlayList'),
+  getCurrentSkin: () => window.electron.ipcRenderer.invoke('hitcircle:getCurrentSkin'),
+  add: (base64: string, subcategory: string, baseName: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:add', base64, subcategory, baseName),
+  addOverlay: (base64: string, subcategory: string, baseName: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:addOverlay', base64, subcategory, baseName),
+  apply: (base64: string, use2x: boolean) =>
+    window.electron.ipcRenderer.invoke('hitcircle:apply', base64, use2x),
+  applyOverlay: (base64: string, use2x: boolean) =>
+    window.electron.ipcRenderer.invoke('hitcircle:applyOverlay', base64, use2x),
+  applyAll: (hitcircleBase64: string, overlayBase64: string, use2x: boolean) =>
+    window.electron.ipcRenderer.invoke('hitcircle:applyAll', hitcircleBase64, overlayBase64, use2x),
+  delete: (presetId: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:delete', presetId),
+  deleteOverlay: (presetId: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:deleteOverlay', presetId),
+  saveCurrentSkinHitCircle: () =>
+    window.electron.ipcRenderer.invoke('hitcircle:saveCurrentSkinHitCircle'),
+  saveCurrentSkinOverlay: () =>
+    window.electron.ipcRenderer.invoke('hitcircle:saveCurrentSkinOverlay'),
+
+  // 数字プリセット関連
+  getCurrentSkinDefaultNumbers: () =>
+    window.electron.ipcRenderer.invoke('hitcircle:getCurrentSkinDefaultNumbers'),
+  getNumberPresets: () =>
+    window.electron.ipcRenderer.invoke('hitcircle:getNumberPresets'),
+  createNumberPreset: (name: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:createNumberPreset', name),
+  deleteNumberPreset: (id: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:deleteNumberPreset', id),
+  applyNumberPreset: (id: string, use2x: boolean) =>
+    window.electron.ipcRenderer.invoke('hitcircle:applyNumberPreset', id, use2x),
+  applyCurrentSkinNumbersCache: () =>
+    window.electron.ipcRenderer.invoke('hitcircle:applyCurrentSkinNumbersCache'),
+  updateNumberPresetImage: (presetId: string, numberKey: string, base64: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:updateNumberPresetImage', presetId, numberKey, base64),
+  removeNumberFromPreset: (presetId: string, numberKey: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:removeNumberFromPreset', presetId, numberKey),
+  saveCurrentSkinNumbersAsPreset: (name: string) =>
+    window.electron.ipcRenderer.invoke('hitcircle:saveCurrentSkinNumbersAsPreset', name),
+};
+
+// ============================================================
+// ヘルパー関数
+// ============================================================
+
+function mapPresetToMediaItem(item: any, index: number): MediaItem {
+  return {
+    id: index + 1,
+    name: item.name,
+    preview: item.previewUrl,
+    presetId: item.id,
+  };
+}
+
+function createPlaceholder(name: string): MediaItem {
+  return { id: 1, name, preview: '' };
+}
+
+/**
+ * プリセット名から一意の名前を生成
+ */
+function makeUniquePresetName(presets: NumberPreset[], basePrefix: string): string {
+  const nonCurrentSkinPresets = presets.filter((p) => p.id !== 'current-skin');
+  
+  let maxNumber = 0;
+  const regex = new RegExp(`^${basePrefix}\\s*(\\d+)$`, 'i');
+  for (const preset of nonCurrentSkinPresets) {
+    const match = preset.name.match(regex);
+    if (match) {
+      const num = parseInt(match[1], 10);
+      if (num > maxNumber) {
+        maxNumber = num;
+      }
+    }
+  }
+  
+  return `${basePrefix} ${maxNumber + 1}`;
+}
+
+// ============================================================
+// メインコンポーネント
+// ============================================================
+
+export default function HitCircle({ currentSkin }: HitCircleProps): React.ReactElement {
+  // データ
   const [hitcircles, setHitcircles] = useState<MediaItem[]>([]);
   const [overlays, setOverlays] = useState<MediaItem[]>([]);
+  const [numberPresets, setNumberPresets] = useState<NumberPreset[]>([]);
+
+  // カルーセル
+  const circleCarousel = useCarousel(hitcircles);
+  const overlayCarousel = useCarousel(overlays);
+
+  // オプション
   const [hitcircles2x, setHitcircles2x] = useState(false);
   const [overlays2x, setOverlays2x] = useState(false);
-  const [selectedCircle, setSelectedCircle] = useState(0);
-  const [selectedOverlay, setSelectedOverlay] = useState(0);
-  const [isAnimatingCircle, setIsAnimatingCircle] = useState(false);
-  const [isAnimatingOverlay, setIsAnimatingOverlay] = useState(false);
-  const [circleSlideDir, setCircleSlideDir] = useState<'left' | 'right' | null>(null);
-  const [overlaySlideDir, setOverlaySlideDir] = useState<'left' | 'right' | null>(null);
   const [use2x, setUse2x] = useState(false);
+
+  // ステータス
   const [isLoading, setIsLoading] = useState(true);
   const [isApplying, setIsApplying] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -44,24 +147,86 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
   const [hasSavedOverlay, setHasSavedOverlay] = useState(false);
   const [hasSavedNumbers, setHasSavedNumbers] = useState(false);
 
-  // Number Preset State
-  const [numberPresets, setNumberPresets] = useState<NumberPreset[]>([]);
+  // Number Preset UI状態
   const [expandedPresets, setExpandedPresets] = useState<Set<string>>(new Set());
   const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState('');
-  // Format: 'presetId-default-N' or null
   const [selectedPreviewKey, setSelectedPreviewKey] = useState<string | null>(null);
 
-  const fileRefCircle = React.useRef<HTMLInputElement | null>(null);
-  const fileRefOverlay = React.useRef<HTMLInputElement | null>(null);
+  // スキン変更追跡
   const prevSkinRef = useRef<string | undefined>(undefined);
 
-  // 初期データの読み込み
-  useEffect(() => {
-    loadData();
+  // --------------------------------------------------------
+  // データ読み込み
+  // --------------------------------------------------------
+
+  const loadData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      // 並列でデータ取得
+      const [hitcircleList, overlayList, currentSkinData, currentSkinNumbers, savedPresets] = await Promise.all([
+        hitcircleApi.getList() as Promise<any[]>,
+        hitcircleApi.getOverlayList() as Promise<any[]>,
+        hitcircleApi.getCurrentSkin() as Promise<CurrentSkinData>,
+        hitcircleApi.getCurrentSkinDefaultNumbers() as Promise<{ [key: string]: string | null }>,
+        hitcircleApi.getNumberPresets() as Promise<NumberPreset[]>,
+      ]);
+
+      // ヒットサークル一覧
+      const hitcircleItems: MediaItem[] = hitcircleList.map(mapPresetToMediaItem);
+      const overlayItems: MediaItem[] = overlayList.map(mapPresetToMediaItem);
+
+      // Current Skin追加
+      if (currentSkinData.hitcircle) {
+        hitcircleItems.unshift({ id: 0, name: 'Current Skin', preview: currentSkinData.hitcircle });
+      }
+      if (currentSkinData.hitcircleOverlay) {
+        overlayItems.unshift({ id: 0, name: 'Current Skin (Overlay)', preview: currentSkinData.hitcircleOverlay });
+      }
+
+      // プレースホルダー
+      if (hitcircleItems.length === 0) hitcircleItems.push(createPlaceholder('No hitcircle'));
+      if (overlayItems.length === 0) overlayItems.push(createPlaceholder('No overlay'));
+
+      setHitcircles(hitcircleItems);
+      setOverlays(overlayItems);
+
+      // 数字プリセット
+      const presetsArray: NumberPreset[] = [];
+      
+      const hasAnyNumber = Object.values(currentSkinNumbers).some((v) => v !== null);
+      if (hasAnyNumber) {
+        presetsArray.push({
+          id: 'current-skin',
+          name: 'Current Skin',
+          numbers: currentSkinNumbers,
+        });
+        if (currentSkinNumbers['default-1']) {
+          setSelectedPreviewKey('current-skin-default-1');
+        }
+      }
+
+      if (savedPresets?.length > 0) {
+        presetsArray.push(...savedPresets);
+      }
+
+      setNumberPresets(presetsArray);
+    } catch (error) {
+      console.error('Failed to load hitcircle data:', error);
+      setHitcircles([createPlaceholder('No hitcircle')]);
+      setOverlays([createPlaceholder('No overlay')]);
+      setNumberPresets([]);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  // currentSkinが変更された時に自動で再読み込み
+  // 初期読み込み
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // スキン変更時の再読み込み
   useEffect(() => {
     if (prevSkinRef.current !== undefined && prevSkinRef.current !== currentSkin) {
       loadData();
@@ -70,172 +235,33 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
       setHasSavedNumbers(false);
     }
     prevSkinRef.current = currentSkin;
-  }, [currentSkin]);
+  }, [currentSkin, loadData]);
 
-  const loadData = async () => {
-    setIsLoading(true);
-    try {
-      // ヒットサークル一覧を取得
-      const hitcircleList = await window.electron.ipcRenderer.invoke('hitcircle:getList') as any[];
-      const overlayList = await window.electron.ipcRenderer.invoke('hitcircle:getOverlayList') as any[];
+  // --------------------------------------------------------
+  // プレビュー用ヘルパー
+  // --------------------------------------------------------
 
-      const hitcircleItems: MediaItem[] = hitcircleList.map((item, idx) => ({
-        id: idx + 1,
-        name: item.name,
-        preview: item.previewUrl,
-        presetId: item.id, // バックエンドのpresetIdを保持
-      }));
-
-      const overlayItems: MediaItem[] = overlayList.map((item, idx) => ({
-        id: idx + 1,
-        name: item.name,
-        preview: item.previewUrl,
-        presetId: item.id, // バックエンドのpresetIdを保持
-      }));
-
-      // 現在のスキンからヒットサークル画像を取得
-      const currentSkin = await window.electron.ipcRenderer.invoke('hitcircle:getCurrentSkin') as {
-        hitcircle: string | null;
-        hitcircleOverlay: string | null;
-      };
-
-      if (currentSkin.hitcircle) {
-        hitcircleItems.unshift({
-          id: 0,
-          name: 'Current Skin',
-          preview: currentSkin.hitcircle,
-        });
-      }
-
-      if (currentSkin.hitcircleOverlay) {
-        overlayItems.unshift({
-          id: 0,
-          name: 'Current Skin (Overlay)',
-          preview: currentSkin.hitcircleOverlay,
-        });
-      }
-
-      // 最低1つは表示するためのプレースホルダー
-      if (hitcircleItems.length === 0) {
-        hitcircleItems.push({ id: 1, name: 'No hitcircle', preview: '' });
-      }
-      if (overlayItems.length === 0) {
-        overlayItems.push({ id: 1, name: 'No overlay', preview: '' });
-      }
-
-      setHitcircles(hitcircleItems);
-      setOverlays(overlayItems);
-
-      // 数字プリセットを取得
-      const presetsArray: NumberPreset[] = [];
-
-      // 現在のスキンからdefault数字を取得
-      const currentSkinNumbers = await window.electron.ipcRenderer.invoke('hitcircle:getCurrentSkinDefaultNumbers') as {
-        [key: string]: string | null;
-      };
-
-      // 1つでも画像があればCurrent Skinプリセットを追加
-      const hasAnyNumber = Object.values(currentSkinNumbers).some((v) => v !== null);
-      if (hasAnyNumber) {
-        presetsArray.push({
-          id: 'current-skin',
-          name: 'Current Skin',
-          numbers: currentSkinNumbers,
-        });
-        
-        // Current Skinの「1」をデフォルトプレビューに設定
-        if (currentSkinNumbers['default-1']) {
-          setSelectedPreviewKey('current-skin-default-1');
-        }
-      }
-
-      // 保存されているプリセットを取得
-      const presets = await window.electron.ipcRenderer.invoke('hitcircle:getNumberPresets') as NumberPreset[];
-      if (presets && presets.length > 0) {
-        presetsArray.push(...presets);
-      }
-
-      setNumberPresets(presetsArray);
-    } catch (error) {
-      console.error('Failed to load hitcircle data:', error);
-      // エラー時はプレースホルダーを表示
-      setHitcircles([{ id: 1, name: 'No hitcircle', preview: '' }]);
-      setOverlays([{ id: 1, name: 'No overlay', preview: '' }]);
-      setNumberPresets([]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  /**
-   * ファイルをBase64に変換
-   */
-  const fileToBase64 = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  };
-
-  // Get the preview number image from selected key
-  const getPreviewNumberImage = () => {
+  const getPreviewNumberImage = useCallback(() => {
     if (!selectedPreviewKey) return null;
-    // Parse 'presetId-default-N'
     const parts = selectedPreviewKey.split('-default-');
     if (parts.length !== 2) return null;
     const presetId = parts[0];
     const numberKey = `default-${parts[1]}`;
     const preset = numberPresets.find((p) => p.id === presetId);
     return preset?.numbers[numberKey] || null;
-  };
+  }, [selectedPreviewKey, numberPresets]);
 
-  // Get the display number (0-9) from selected key
-  const getPreviewDisplayNumber = () => {
-    if (!selectedPreviewKey) return '1'; // default
+  const getPreviewDisplayNumber = useCallback(() => {
+    if (!selectedPreviewKey) return '1';
     const parts = selectedPreviewKey.split('-default-');
-    if (parts.length !== 2) return '1';
-    return parts[1];
-  };
+    return parts.length === 2 ? parts[1] : '1';
+  }, [selectedPreviewKey]);
 
-  // Navigation handlers
-  const handlePrevCircle = () => {
-    if (isAnimatingCircle || hitcircles.length <= 1) return;
-    setCircleSlideDir('right');
-    setIsAnimatingCircle(true);
-    setSelectedCircle((s) => (s === 0 ? hitcircles.length - 1 : s - 1));
-    setTimeout(() => setIsAnimatingCircle(false), 300);
-  };
+  // --------------------------------------------------------
+  // ヒットサークル操作
+  // --------------------------------------------------------
 
-  const handleNextCircle = () => {
-    if (isAnimatingCircle || hitcircles.length <= 1) return;
-    setCircleSlideDir('left');
-    setIsAnimatingCircle(true);
-    setSelectedCircle((s) => (s === hitcircles.length - 1 ? 0 : s + 1));
-    setTimeout(() => setIsAnimatingCircle(false), 300);
-  };
-
-  const handlePrevOverlay = () => {
-    if (isAnimatingOverlay || overlays.length <= 1) return;
-    setOverlaySlideDir('right');
-    setIsAnimatingOverlay(true);
-    setSelectedOverlay((s) => (s === 0 ? overlays.length - 1 : s - 1));
-    setTimeout(() => setIsAnimatingOverlay(false), 300);
-  };
-
-  const handleNextOverlay = () => {
-    if (isAnimatingOverlay || overlays.length <= 1) return;
-    setOverlaySlideDir('left');
-    setIsAnimatingOverlay(true);
-    setSelectedOverlay((s) => (s === overlays.length - 1 ? 0 : s + 1));
-    setTimeout(() => setIsAnimatingOverlay(false), 300);
-  };
-
-  // File handlers
-  const handleAddHitcircle = async (file?: File) => {
-    if (!file) return;
-
+  const handleAddHitcircle = useCallback(async (file: File) => {
     if (!file.type.includes('png')) {
       window.alert('PNG形式のみ対応しています');
       return;
@@ -243,22 +269,19 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
 
     try {
       const base64 = await fileToBase64(file);
-      // バックエンドに保存 (hitcircle-1, hitcircle-2... の連番で保存)
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:add',
-        base64,
-        'custom',
-        'hitcircle',
-      ) as { success: boolean; savedName?: string; error?: string };
+      const result = await hitcircleApi.add(base64, 'custom', 'hitcircle') as {
+        success: boolean;
+        savedName?: string;
+        error?: string;
+      };
 
       if (result.success) {
-        const savedName = result.savedName || `hitcircle-${hitcircles.length + 1}`;
         const newItem: MediaItem = {
           id: hitcircles.length + 1,
-          name: savedName,
+          name: result.savedName || `hitcircle-${hitcircles.length + 1}`,
           preview: base64,
         };
-        setHitcircles((s) => [...s, newItem]);
+        setHitcircles((prev) => [...prev, newItem]);
       } else {
         window.alert(result.error || 'ヒットサークルの追加に失敗しました');
       }
@@ -266,11 +289,60 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
       console.error('Failed to add hitcircle:', error);
       window.alert('ヒットサークルの追加に失敗しました');
     }
-  };
+  }, [hitcircles.length]);
 
-  const handleAddOverlay = async (file?: File) => {
-    if (!file) return;
+  const handleDeleteHitcircle = useCallback(async (index: number) => {
+    if (hitcircles.length <= 1) return;
+    const hitcircle = hitcircles[index];
+    if (hitcircle.name === 'Current Skin') return;
 
+    if (hitcircle.presetId) {
+      try {
+        await hitcircleApi.delete(hitcircle.presetId);
+      } catch (error) {
+        console.error('Failed to delete hitcircle:', error);
+      }
+    }
+    const newLength = hitcircles.length - 1;
+    setHitcircles((prev) => prev.filter((_, i) => i !== index));
+    circleCarousel.adjustIndexAfterDelete(index, newLength);
+  }, [hitcircles, circleCarousel]);
+
+  const handleApplyHitcircle = useCallback(async () => {
+    const hitcircle = hitcircles[circleCarousel.selectedIndex];
+    if (!hitcircle?.preview) return;
+
+    setIsApplying(true);
+    try {
+      const result = await hitcircleApi.apply(hitcircle.preview, hitcircles2x) as { success: boolean; error?: string };
+      if (!result.success) console.error('Failed to apply hitcircle:', result.error);
+    } catch (error) {
+      console.error('Failed to apply hitcircle:', error);
+    } finally {
+      setIsApplying(false);
+    }
+  }, [hitcircles, circleCarousel.selectedIndex, hitcircles2x]);
+
+  const handleSaveCurrentSkinHitCircle = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const result = await hitcircleApi.saveCurrentSkinHitCircle() as { success: boolean; error?: string };
+      if (result.success) {
+        setHasSavedHitCircle(true);
+        await loadData();
+      }
+    } catch (error) {
+      console.error('Failed to save hitcircle:', error);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [loadData]);
+
+  // --------------------------------------------------------
+  // オーバーレイ操作
+  // --------------------------------------------------------
+
+  const handleAddOverlay = useCallback(async (file: File) => {
     if (!file.type.includes('png')) {
       window.alert('PNG形式のみ対応しています');
       return;
@@ -278,22 +350,19 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
 
     try {
       const base64 = await fileToBase64(file);
-      // バックエンドに保存 (overlay-1, overlay-2... の連番で保存)
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:addOverlay',
-        base64,
-        'custom',
-        'overlay',
-      ) as { success: boolean; savedName?: string; error?: string };
+      const result = await hitcircleApi.addOverlay(base64, 'custom', 'overlay') as {
+        success: boolean;
+        savedName?: string;
+        error?: string;
+      };
 
       if (result.success) {
-        const savedName = result.savedName || `overlay-${overlays.length + 1}`;
         const newItem: MediaItem = {
           id: overlays.length + 1,
-          name: savedName,
+          name: result.savedName || `overlay-${overlays.length + 1}`,
           preview: base64,
         };
-        setOverlays((s) => [...s, newItem]);
+        setOverlays((prev) => [...prev, newItem]);
       } else {
         window.alert(result.error || 'オーバーレイの追加に失敗しました');
       }
@@ -301,205 +370,87 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
       console.error('Failed to add overlay:', error);
       window.alert('オーバーレイの追加に失敗しました');
     }
-  };
+  }, [overlays.length]);
 
-  const handleDropCircle = (e: React.DragEvent) => {
-    e.preventDefault();
-    const f = e.dataTransfer.files?.[0];
-    if (f?.type.includes('png')) handleAddHitcircle(f);
-  };
-
-  const handleDropOverlay = (e: React.DragEvent) => {
-    e.preventDefault();
-    const f = e.dataTransfer.files?.[0];
-    if (f?.type.includes('png')) handleAddOverlay(f);
-  };
-
-  const handleDeleteCircle = async (index: number) => {
-    if (hitcircles.length <= 1) {
-      return;
-    }
-
-    const hitcircle = hitcircles[index];
-    
-    // Current Skinは削除不可
-    if (hitcircle.name === 'Current Skin') {
-      return;
-    }
-
-    // バックエンドの削除APIを呼ぶ
-    if (hitcircle.presetId) {
-      try {
-        const result = await window.electron.ipcRenderer.invoke('hitcircle:delete', hitcircle.presetId);
-        if (!result) {
-          console.error('Failed to delete hitcircle from backend');
-        }
-      } catch (error) {
-        console.error('Failed to delete hitcircle:', error);
-      }
-    }
-
-    setHitcircles((s) => s.filter((_, i) => i !== index));
-    setSelectedCircle(Math.max(0, Math.min(selectedCircle, hitcircles.length - 2)));
-  };
-
-  const handleDeleteOverlay = async (index: number) => {
-    if (overlays.length <= 1) {
-      return;
-    }
-
+  const handleDeleteOverlay = useCallback(async (index: number) => {
+    if (overlays.length <= 1) return;
     const overlay = overlays[index];
-    
-    // Current Skinは削除不可
-    if (overlay.name === 'Current Skin (Overlay)') {
-      return;
-    }
+    if (overlay.name === 'Current Skin (Overlay)') return;
 
-    // バックエンドの削除APIを呼ぶ
     if (overlay.presetId) {
       try {
-        const result = await window.electron.ipcRenderer.invoke('hitcircle:deleteOverlay', overlay.presetId);
-        if (!result) {
-          console.error('Failed to delete overlay from backend');
-        }
+        await hitcircleApi.deleteOverlay(overlay.presetId);
       } catch (error) {
         console.error('Failed to delete overlay:', error);
       }
     }
+    const newLength = overlays.length - 1;
+    setOverlays((prev) => prev.filter((_, i) => i !== index));
+    overlayCarousel.adjustIndexAfterDelete(index, newLength);
+  }, [overlays, overlayCarousel]);
 
-    setOverlays((s) => s.filter((_, i) => i !== index));
-    setSelectedOverlay(Math.max(0, Math.min(selectedOverlay, overlays.length - 2)));
-  };
-
-  /**
-   * ヒットサークルを適用
-   */
-  const handleApplyHitcircle = async () => {
-    const hitcircle = hitcircles[selectedCircle];
-    if (!hitcircle || !hitcircle.preview) {
-      return;
-    }
+  const handleApplyOverlay = useCallback(async () => {
+    const overlay = overlays[overlayCarousel.selectedIndex];
+    if (!overlay?.preview) return;
 
     setIsApplying(true);
     try {
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:apply',
-        hitcircle.preview,
-        hitcircles2x,
-      ) as { success: boolean; error?: string };
-
-      if (result.success) {
-        // 適用成功
-      } else {
-        console.error('Failed to apply hitcircle:', result.error);
-      }
-    } catch (error) {
-      console.error('Failed to apply hitcircle:', error);
-    } finally {
-      setIsApplying(false);
-    }
-  };
-
-  /**
-   * オーバーレイを適用
-   */
-  const handleApplyOverlay = async () => {
-    const overlay = overlays[selectedOverlay];
-    if (!overlay || !overlay.preview) {
-      return;
-    }
-
-    setIsApplying(true);
-    try {
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:applyOverlay',
-        overlay.preview,
-        overlays2x,
-      ) as { success: boolean; error?: string };
-
-      if (result.success) {
-        // 適用成功
-      } else {
-        console.error('Failed to apply overlay:', result.error);
-      }
+      const result = await hitcircleApi.applyOverlay(overlay.preview, overlays2x) as { success: boolean; error?: string };
+      if (!result.success) console.error('Failed to apply overlay:', result.error);
     } catch (error) {
       console.error('Failed to apply overlay:', error);
     } finally {
       setIsApplying(false);
     }
-  };
+  }, [overlays, overlayCarousel.selectedIndex, overlays2x]);
 
-  /**
-   * ヒットサークルとオーバーレイを両方適用
-   */
-  const handleApplyAll = async () => {
-    const hitcircle = hitcircles[selectedCircle];
-    const overlay = overlays[selectedOverlay];
-
-    if (!hitcircle?.preview || !overlay?.preview) {
-      return;
+  const handleSaveCurrentSkinOverlay = useCallback(async () => {
+    setIsSaving(true);
+    try {
+      const result = await hitcircleApi.saveCurrentSkinOverlay() as { success: boolean; error?: string };
+      if (result.success) {
+        setHasSavedOverlay(true);
+        await loadData();
+      }
+    } catch (error) {
+      console.error('Failed to save overlay:', error);
+    } finally {
+      setIsSaving(false);
     }
+  }, [loadData]);
+
+  // --------------------------------------------------------
+  // 全体適用
+  // --------------------------------------------------------
+
+  const handleApplyAll = useCallback(async () => {
+    const hitcircle = hitcircles[circleCarousel.selectedIndex];
+    const overlay = overlays[overlayCarousel.selectedIndex];
+    if (!hitcircle?.preview || !overlay?.preview) return;
 
     setIsApplying(true);
     try {
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:applyAll',
-        hitcircle.preview,
-        overlay.preview,
-        use2x,
-      ) as { success: boolean; error?: string };
-
-      if (result.success) {
-        // 適用成功
-      } else {
-        console.error('Failed to apply all:', result.error);
-      }
+      const result = await hitcircleApi.applyAll(hitcircle.preview, overlay.preview, use2x) as { success: boolean; error?: string };
+      if (!result.success) console.error('Failed to apply all:', result.error);
     } catch (error) {
       console.error('Failed to apply all:', error);
     } finally {
       setIsApplying(false);
     }
-  };
+  }, [hitcircles, overlays, circleCarousel.selectedIndex, overlayCarousel.selectedIndex, use2x]);
 
-  // Number Preset handlers
-  /**
-   * 一意のプリセット名を生成
-   * Current Skinを除外し、最大の番号 + 1 を使用
-   */
-  const makeUniquePresetName = (basePrefix: string) => {
-    // Current Skinを除外したプリセットのみを対象に
-    const nonCurrentSkinPresets = numberPresets.filter((p) => p.id !== 'current-skin');
-    
-    // 既存のプリセット名から最大の番号を取得
-    let maxNumber = 0;
-    const regex = new RegExp(`^${basePrefix}\\s*(\\d+)$`, 'i');
-    for (const preset of nonCurrentSkinPresets) {
-      const match = preset.name.match(regex);
-      if (match) {
-        const num = parseInt(match[1], 10);
-        if (num > maxNumber) {
-          maxNumber = num;
-        }
-      }
-    }
-    
-    // 最大の番号 + 1 を使用
-    return `${basePrefix} ${maxNumber + 1}`;
-  };
+  // --------------------------------------------------------
+  // 数字プリセット操作
+  // --------------------------------------------------------
 
-  const handleAddPreset = async () => {
-    const name = makeUniquePresetName('Number Preset');
+  const handleAddPreset = useCallback(async () => {
+    const name = makeUniquePresetName(numberPresets, 'Number Preset');
     try {
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:createNumberPreset',
-        name,
-      ) as { success: boolean; preset?: NumberPreset; error?: string };
-
+      const result = await hitcircleApi.createNumberPreset(name) as { success: boolean; preset?: NumberPreset; error?: string };
       if (result.success && result.preset) {
         setNumberPresets((prev) => [...prev, result.preset!]);
         setExpandedPresets((prev) => new Set(prev).add(result.preset!.id));
       } else {
-        // フォールバック: ローカルで作成
         const newPreset = createEmptyNumberPreset(name);
         setNumberPresets((prev) => [...prev, newPreset]);
         setExpandedPresets((prev) => new Set(prev).add(newPreset.id));
@@ -510,69 +461,52 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
       setNumberPresets((prev) => [...prev, newPreset]);
       setExpandedPresets((prev) => new Set(prev).add(newPreset.id));
     }
-  };
+  }, [numberPresets]);
 
-  const handleToggleExpand = (id: string) => {
+  const handleToggleExpand = useCallback((id: string) => {
     setExpandedPresets((prev) => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id);
       else next.add(id);
       return next;
     });
-  };
+  }, []);
 
-  const handleStartEditing = (preset: NumberPreset) => {
+  const handleStartEditing = useCallback((preset: NumberPreset) => {
     setEditingPresetId(preset.id);
     setEditingName(preset.name);
-  };
+  }, []);
 
-  const handleSaveName = (id: string, name: string) => {
-    setNumberPresets((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, name } : p))
-    );
+  const handleSaveName = useCallback((id: string, name: string) => {
+    setNumberPresets((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)));
     setEditingPresetId(null);
-  };
+  }, []);
 
-  const handleDeletePreset = async (id: string) => {
+  const handleDeletePreset = useCallback(async (id: string) => {
     try {
-      await window.electron.ipcRenderer.invoke('hitcircle:deleteNumberPreset', id);
+      await hitcircleApi.deleteNumberPreset(id);
     } catch (error) {
       console.error('Failed to delete preset:', error);
     }
     setNumberPresets((prev) => prev.filter((p) => p.id !== id));
-  };
+  }, []);
 
-  const handleApplyPreset = async (preset: NumberPreset) => {
+  const handleApplyPreset = useCallback(async (preset: NumberPreset) => {
     setIsApplying(true);
     try {
-      // Current Skin の場合はキャッシュから適用
       if (preset.id === 'current-skin') {
-        const result = await window.electron.ipcRenderer.invoke(
-          'hitcircle:applyCurrentSkinNumbersCache',
-        ) as { success: boolean; error?: string };
-
-        if (!result.success) {
-          console.error('Failed to apply current skin cache:', result.error);
-        }
+        await hitcircleApi.applyCurrentSkinNumbersCache();
       } else {
-        const result = await window.electron.ipcRenderer.invoke(
-          'hitcircle:applyNumberPreset',
-          preset.id,
-          use2x,
-        ) as { success: boolean; error?: string };
-
-        if (!result.success) {
-          console.error('Failed to apply preset:', result.error);
-        }
+        await hitcircleApi.applyNumberPreset(preset.id, use2x);
       }
     } catch (error) {
       console.error('Failed to apply preset:', error);
     } finally {
       setIsApplying(false);
     }
-  };
+  }, [use2x]);
 
-  const handleImageUpload = async (presetId: string, numberKey: string, file: File) => {
+  const handleImageUpload = useCallback(async (presetId: string, numberKey: string, file: File) => {
     if (!file.type.includes('png')) {
       window.alert('PNG形式のみ対応しています');
       return;
@@ -580,21 +514,11 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
 
     try {
       const base64 = await fileToBase64(file);
-
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:updateNumberPresetImage',
-        presetId,
-        numberKey,
-        base64,
-      ) as { success: boolean; error?: string };
+      const result = await hitcircleApi.updateNumberPresetImage(presetId, numberKey, base64) as { success: boolean; error?: string };
 
       if (result.success) {
         setNumberPresets((prev) =>
-          prev.map((p) =>
-            p.id === presetId
-              ? { ...p, numbers: { ...p.numbers, [numberKey]: base64 } }
-              : p
-          )
+          prev.map((p) => (p.id === presetId ? { ...p, numbers: { ...p.numbers, [numberKey]: base64 } } : p))
         );
       } else {
         window.alert(result.error || '画像の追加に失敗しました');
@@ -603,131 +527,66 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
       console.error('Failed to upload image:', error);
       window.alert('画像の追加に失敗しました');
     }
-  };
+  }, []);
 
-  const handleImageRemove = async (presetId: string, numberKey: string) => {
-    // Current Skinの場合はバックエンド削除不要
+  const handleImageRemove = useCallback(async (presetId: string, numberKey: string) => {
     if (presetId !== 'current-skin') {
       try {
-        const result = await window.electron.ipcRenderer.invoke(
-          'hitcircle:removeNumberFromPreset',
-          presetId,
-          numberKey,
-        ) as { success: boolean; error?: string };
-        
-        if (!result.success) {
-          console.error('Failed to remove number from preset:', result.error);
-        }
+        await hitcircleApi.removeNumberFromPreset(presetId, numberKey);
       } catch (error) {
         console.error('Failed to remove number from preset:', error);
       }
     }
 
-    // Clear preview if the removed image was being previewed
     const removedKey = `${presetId}-${numberKey}`;
     if (selectedPreviewKey === removedKey) {
       setSelectedPreviewKey(null);
     }
     setNumberPresets((prev) =>
-      prev.map((p) =>
-        p.id === presetId
-          ? { ...p, numbers: { ...p.numbers, [numberKey]: null } }
-          : p
-      )
+      prev.map((p) => (p.id === presetId ? { ...p, numbers: { ...p.numbers, [numberKey]: null } } : p))
     );
-  };
+  }, [selectedPreviewKey]);
 
-  const handleSelectForPreview = (presetId: string, numberKey: string) => {
+  const handleSelectForPreview = useCallback((presetId: string, numberKey: string) => {
     const key = `${presetId}-${numberKey}`;
-    // Toggle selection: if already selected, deselect
-    if (selectedPreviewKey === key) {
-      setSelectedPreviewKey(null);
-    } else {
-      setSelectedPreviewKey(key);
-    }
-  };
+    setSelectedPreviewKey((prev) => (prev === key ? null : key));
+  }, []);
 
-  /**
-   * Save Current Skin hitcircle to app
-   */
-  const handleSaveCurrentSkinHitCircle = async () => {
+  const handleSaveCurrentSkinNumbersAsPreset = useCallback(async () => {
+    const name = makeUniquePresetName(numberPresets, 'Number Preset');
     setIsSaving(true);
     try {
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:saveCurrentSkinHitCircle',
-      ) as { success: boolean; savedName?: string; error?: string };
-
-      if (result.success) {
-        setHasSavedHitCircle(true);
-        await loadData();
-      } else {
-        console.error('Failed to save hitcircle:', result.error);
-      }
-    } catch (error) {
-      console.error('Failed to save hitcircle:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  /**
-   * Save Current Skin overlay to app
-   */
-  const handleSaveCurrentSkinOverlay = async () => {
-    setIsSaving(true);
-    try {
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:saveCurrentSkinOverlay',
-      ) as { success: boolean; savedName?: string; error?: string };
-
-      if (result.success) {
-        setHasSavedOverlay(true);
-        await loadData();
-      } else {
-        console.error('Failed to save overlay:', result.error);
-      }
-    } catch (error) {
-      console.error('Failed to save overlay:', error);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  /**
-   * Save Current Skin numbers as preset
-   */
-  const handleSaveCurrentSkinNumbersAsPreset = async () => {
-    // Add Presetと同様にデフォルト名を自動生成（最大番号 + 1）
-    const name = makeUniquePresetName('Number Preset');
-
-    setIsSaving(true);
-    try {
-      const result = await window.electron.ipcRenderer.invoke(
-        'hitcircle:saveCurrentSkinNumbersAsPreset',
-        name,
-      ) as { success: boolean; error?: string };
-
+      const result = await hitcircleApi.saveCurrentSkinNumbersAsPreset(name) as { success: boolean; error?: string };
       if (result.success) {
         setHasSavedNumbers(true);
         await loadData();
-      } else {
-        console.error('Failed to save numbers preset:', result.error);
       }
     } catch (error) {
       console.error('Failed to save numbers preset:', error);
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [numberPresets, loadData]);
 
-  // Current Skinが選択されているか
-  const isCurrentSkinHitCircle = hitcircles[selectedCircle]?.name === 'Current Skin';
-  const isCurrentSkinOverlay = overlays[selectedOverlay]?.name?.startsWith('Current Skin');
-  const hasCurrentSkinHitCircle = hitcircles.some(c => c.name === 'Current Skin');
-  const hasCurrentSkinOverlay = overlays.some(o => o.name?.startsWith('Current Skin'));
+  // --------------------------------------------------------
+  // Current Skin判定
+  // --------------------------------------------------------
+
+  const isCurrentSkinHitCircle = hitcircles[circleCarousel.selectedIndex]?.name === 'Current Skin';
+  const isCurrentSkinOverlay = overlays[overlayCarousel.selectedIndex]?.name?.startsWith('Current Skin');
+  const hasCurrentSkinHitCircle = hitcircles.some((c) => c.name === 'Current Skin');
+  const hasCurrentSkinOverlay = overlays.some((o) => o.name?.startsWith('Current Skin'));
 
   const previewNumberImage = getPreviewNumberImage();
   const displayNumber = getPreviewDisplayNumber();
+
+  // --------------------------------------------------------
+  // レンダリング
+  // --------------------------------------------------------
+
+  if (isLoading) {
+    return <div className="hitcircle-editor page loading">読み込み中...</div>;
+  }
 
   return (
     <div className="hitcircle-editor page">
@@ -740,21 +599,17 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
           <CardBody className="preview-area">
             <div className="preview-combined">
               <img
-                src={hitcircles[selectedCircle]?.preview}
+                src={hitcircles[circleCarousel.selectedIndex]?.preview}
                 alt="hitcircle"
                 className="preview-base"
               />
               <img
-                src={overlays[selectedOverlay]?.preview}
+                src={overlays[overlayCarousel.selectedIndex]?.preview}
                 alt="overlay"
                 className="preview-overlay"
               />
               {previewNumberImage ? (
-                <img
-                  src={previewNumberImage}
-                  alt="number"
-                  className="preview-number-image"
-                />
+                <img src={previewNumberImage} alt="number" className="preview-number-image" />
               ) : (
                 <div className="preview-number">{displayNumber}</div>
               )}
@@ -764,7 +619,7 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
               <Button
                 variant="primary"
                 onClick={handleApplyAll}
-                disabled={isApplying || !hitcircles[selectedCircle]?.preview || !overlays[selectedOverlay]?.preview}
+                disabled={isApplying || !hitcircles[circleCarousel.selectedIndex]?.preview || !overlays[overlayCarousel.selectedIndex]?.preview}
               >
                 {isApplying ? 'Applying...' : 'Apply All'}
               </Button>
@@ -775,147 +630,51 @@ export default function HitCircle({ currentSkin }: HitCircleProps) {
 
       {/* Hit Circle and Overlay Sections */}
       <div className="layout-bottom">
-        {/* Hit Circle Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Hit Circle</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <CarouselRow>
-              <IconButton direction="prev" onClick={handlePrevCircle} disabled={isAnimatingCircle} />
-              <Carousel isAnimating={isAnimatingCircle}>
-                {getVisible(hitcircles, selectedCircle).map((it) => (
-                  <CarouselItem
-                    key={it.id + it.position}
-                    item={it}
-                    position={it.position}
-                    isAnimating={isAnimatingCircle}
-                    slideDirection={circleSlideDir}
-                    showLabel={true}
-                    currentIndex={selectedCircle}
-                    totalItems={hitcircles.length}
-                    isCurrentSkin={it.name === 'Current Skin' && it.position === 'center'}
-                    hasCurrentSkin={hasCurrentSkinHitCircle}
-                  />
-                ))}
-              </Carousel>
-              <IconButton direction="next" onClick={handleNextCircle} disabled={isAnimatingCircle} />
-            </CarouselRow>
+        <MediaCarouselSection
+          title="Hit Circle"
+          items={hitcircles}
+          selectedIndex={circleCarousel.selectedIndex}
+          isAnimating={circleCarousel.isAnimating}
+          slideDirection={circleCarousel.slideDirection}
+          onPrev={circleCarousel.goToPrev}
+          onNext={circleCarousel.goToNext}
+          onAdd={handleAddHitcircle}
+          onDelete={handleDeleteHitcircle}
+          onApply={handleApplyHitcircle}
+          onSaveCurrentSkin={handleSaveCurrentSkinHitCircle}
+          isCurrentSkin={isCurrentSkinHitCircle}
+          hasCurrentSkin={hasCurrentSkinHitCircle}
+          hasSaved={hasSavedHitCircle}
+          use2x={hitcircles2x}
+          onUse2xChange={setHitcircles2x}
+          isApplying={isApplying}
+          isSaving={isSaving}
+          dropzoneText="Drop hit circle image or click to add"
+          acceptedFileTypes="image/*"
+        />
 
-            <Uploader
-              onDrop={handleDropCircle}
-              onClick={() => fileRefCircle.current?.click()}
-              dropzoneText="Drop hit circle image or click to add"
-            >
-              <input
-                ref={fileRefCircle}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleAddHitcircle(f);
-                  e.currentTarget.value = '';
-                }}
-              />
-              <ControlsRow>
-                {!isCurrentSkinHitCircle && (
-                  <TrashButton onClick={() => handleDeleteCircle(selectedCircle)} title="Remove selected hit circle" />
-                )}
-                <ControlsRowRight>
-                  {isCurrentSkinHitCircle && !hasSavedHitCircle && (
-                    <Button
-                      variant="default"
-                      onClick={handleSaveCurrentSkinHitCircle}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? 'Saving...' : 'Save to App'}
-                    </Button>
-                  )}
-                  <Toggle label="@2x" checked={hitcircles2x} onChange={setHitcircles2x} labelPosition="right" size="sm" />
-                  <Button
-                    variant="primary"
-                    onClick={handleApplyHitcircle}
-                    disabled={isApplying || !hitcircles[selectedCircle]?.preview}
-                  >
-                    {isApplying ? 'Applying...' : 'Apply'}
-                  </Button>
-                </ControlsRowRight>
-              </ControlsRow>
-            </Uploader>
-          </CardBody>
-        </Card>
-
-        {/* Overlay Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Hit Circle Overlay</CardTitle>
-          </CardHeader>
-          <CardBody>
-            <CarouselRow>
-              <IconButton direction="prev" onClick={handlePrevOverlay} disabled={isAnimatingOverlay} />
-              <Carousel isAnimating={isAnimatingOverlay}>
-                {getVisible(overlays, selectedOverlay).map((it) => (
-                  <CarouselItem
-                    key={it.id + it.position}
-                    item={it}
-                    position={it.position}
-                    isAnimating={isAnimatingOverlay}
-                    slideDirection={overlaySlideDir}
-                    showLabel={true}
-                    currentIndex={selectedOverlay}
-                    totalItems={overlays.length}
-                    isCurrentSkin={it.name?.startsWith('Current Skin') && it.position === 'center'}
-                    hasCurrentSkin={hasCurrentSkinOverlay}
-                  />
-                ))}
-              </Carousel>
-              <IconButton direction="next" onClick={handleNextOverlay} disabled={isAnimatingOverlay} />
-            </CarouselRow>
-
-            <Uploader
-              onDrop={handleDropOverlay}
-              onClick={() => fileRefOverlay.current?.click()}
-              dropzoneText="Drop overlay image or click to add"
-            >
-              <input
-                ref={fileRefOverlay}
-                type="file"
-                accept="image/*"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleAddOverlay(f);
-                  e.currentTarget.value = '';
-                }}
-              />
-              <ControlsRow>
-                {!isCurrentSkinOverlay && (
-                  <TrashButton onClick={() => handleDeleteOverlay(selectedOverlay)} title="Remove selected overlay" />
-                )}
-                <ControlsRowRight>
-                  {isCurrentSkinOverlay && !hasSavedOverlay && (
-                    <Button
-                      variant="default"
-                      onClick={handleSaveCurrentSkinOverlay}
-                      disabled={isSaving}
-                    >
-                      {isSaving ? 'Saving...' : 'Save to App'}
-                    </Button>
-                  )}
-                  <Toggle label="@2x" checked={overlays2x} onChange={setOverlays2x} labelPosition="right" size="sm" />
-                  <Button
-                    variant="primary"
-                    onClick={handleApplyOverlay}
-                    disabled={isApplying || !overlays[selectedOverlay]?.preview}
-                  >
-                    {isApplying ? 'Applying...' : 'Apply'}
-                  </Button>
-                </ControlsRowRight>
-              </ControlsRow>
-            </Uploader>
-          </CardBody>
-        </Card>
+        <MediaCarouselSection
+          title="Hit Circle Overlay"
+          items={overlays}
+          selectedIndex={overlayCarousel.selectedIndex}
+          isAnimating={overlayCarousel.isAnimating}
+          slideDirection={overlayCarousel.slideDirection}
+          onPrev={overlayCarousel.goToPrev}
+          onNext={overlayCarousel.goToNext}
+          onAdd={handleAddOverlay}
+          onDelete={handleDeleteOverlay}
+          onApply={handleApplyOverlay}
+          onSaveCurrentSkin={handleSaveCurrentSkinOverlay}
+          isCurrentSkin={isCurrentSkinOverlay ?? false}
+          hasCurrentSkin={hasCurrentSkinOverlay}
+          hasSaved={hasSavedOverlay}
+          use2x={overlays2x}
+          onUse2xChange={setOverlays2x}
+          isApplying={isApplying}
+          isSaving={isSaving}
+          dropzoneText="Drop overlay image or click to add"
+          acceptedFileTypes="image/*"
+        />
       </div>
 
       {/* Number Presets Section */}
