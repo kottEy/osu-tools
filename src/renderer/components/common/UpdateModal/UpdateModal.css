@@ -397,6 +397,35 @@
   to { transform: rotate(360deg); }
 }
 
+/* Downloaded state */
+.update-modal__downloaded {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-4, 16px);
+  width: 100%;
+}
+
+.update-modal__downloaded-message {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2, 8px);
+  font-size: 14px;
+  color: #4ade80;
+  font-weight: 500;
+}
+
+.update-modal__check-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  background: rgba(74, 222, 128, 0.2);
+  border-radius: 50%;
+  font-size: 12px;
+}
+
 /* ============================================================================
    RESPONSIVE
    ============================================================================ */

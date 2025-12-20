@@ -27,6 +27,7 @@ export default function UpdateModal({
 }: UpdateModalProps) {
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadProgress, setDownloadProgress] = useState(0);
+  const [isDownloaded, setIsDownloaded] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -45,12 +46,19 @@ export default function UpdateModal({
     });
 
     const unsubDownloaded = window.electron.ipcRenderer.on('update:downloaded', () => {
-      window.electron.ipcRenderer.invoke('update:install');
+      setIsDownloading(false);
+      setIsDownloaded(true);
+    });
+
+    const unsubError = window.electron.ipcRenderer.on('update:error', (data: any) => {
+      console.error('Update error:', data?.message);
+      setIsDownloading(false);
     });
 
     return () => {
       unsubProgress();
       unsubDownloaded();
+      unsubError();
     };
   }, [isOpen]);
 
@@ -138,7 +146,22 @@ export default function UpdateModal({
         </div>
 
         <div className="update-modal__footer">
-          {!isDownloading ? (
+          {isDownloaded ? (
+            <div className="update-modal__downloaded">
+              <div className="update-modal__downloaded-message">
+                <span className="update-modal__check-icon">✓</span>
+                <span>Update downloaded! Ready to install.</span>
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => window.electron.ipcRenderer.invoke('update:install')}
+                className="update-modal__btn-update"
+              >
+                Restart & Install
+                <span className="update-modal__btn-arrow">→</span>
+              </Button>
+            </div>
+          ) : !isDownloading ? (
             <>
               <div className="update-modal__footer-secondary">
                 <Button

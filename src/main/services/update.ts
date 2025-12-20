@@ -51,10 +51,12 @@ class UpdateService {
    */
   private setupEventListeners(): void {
     autoUpdater.on('checking-for-update', () => {
+      log.info('Update: checking-for-update');
       this.sendToRenderer('update:checking');
     });
 
     autoUpdater.on('update-available', (info) => {
+      log.info('Update: update-available', info);
       this.sendToRenderer('update:available', {
         version: this.formatVersion(info.version),
         releaseNotes: info.releaseNotes,
@@ -62,10 +64,12 @@ class UpdateService {
     });
 
     autoUpdater.on('update-not-available', () => {
+      log.info('Update: update-not-available');
       this.sendToRenderer('update:not-available');
     });
 
     autoUpdater.on('download-progress', (progressObj) => {
+      log.info('Update: download-progress', progressObj.percent);
       this.sendToRenderer('update:download-progress', {
         percent: progressObj.percent,
         transferred: progressObj.transferred,
@@ -73,11 +77,13 @@ class UpdateService {
       });
     });
 
-    autoUpdater.on('update-downloaded', () => {
+    autoUpdater.on('update-downloaded', (info) => {
+      log.info('Update: update-downloaded', info);
       this.sendToRenderer('update:downloaded');
     });
 
     autoUpdater.on('error', (error) => {
+      log.error('Update error:', error);
       console.error('Update error:', error);
       this.sendToRenderer('update:error', { message: error.message });
     });
@@ -152,9 +158,12 @@ class UpdateService {
    * アップデートをダウンロード
    */
   async downloadUpdate(): Promise<void> {
+    log.info('Update: Starting download...');
     try {
-      await autoUpdater.downloadUpdate();
+      const result = await autoUpdater.downloadUpdate();
+      log.info('Update: Download started, result:', result);
     } catch (error) {
+      log.error('Update: Failed to download update:', error);
       console.error('Failed to download update:', error);
       throw error;
     }
