@@ -20,6 +20,8 @@ export interface SkinGeneral {
   sliderStyle: number;
   allowSliderBallTint: boolean;
   spinnerFadePlayfield: boolean;
+  // UIで編集しない設定を保持
+  unknownSettings: Record<string, string>;
 }
 
 export interface SkinColours {
@@ -35,6 +37,8 @@ export interface SkinColours {
   songSelectInactiveText: string;
   sliderBorder: string;
   sliderTrackOverride: string;
+  // UIで編集しない設定を保持
+  unknownSettings: Record<string, string>;
 }
 
 export interface SkinFonts {
@@ -44,12 +48,27 @@ export interface SkinFonts {
   scoreOverlap: number;
   comboPrefix: string;
   comboOverlap: number;
+  // UIで編集しない設定を保持
+  unknownSettings: Record<string, string>;
+}
+
+// [CatchTheBeat] セクション
+export interface SkinCatchTheBeat {
+  unknownSettings: Record<string, string>;
+}
+
+// [Mania] セクション（キー数ごとに複数のセクションが存在する可能性あり）
+export interface SkinManiaSection {
+  keys: number;
+  settings: Record<string, string>;
 }
 
 export interface SkinIni {
   general: SkinGeneral;
   colours: SkinColours;
   fonts: SkinFonts;
+  catchTheBeat: SkinCatchTheBeat;
+  mania: SkinManiaSection[];
 }
 
 export interface ApplyResult {
@@ -72,6 +91,7 @@ const DEFAULT_SKIN_INI: SkinIni = {
     sliderStyle: 2,
     allowSliderBallTint: true,
     spinnerFadePlayfield: false,
+    unknownSettings: {},
   },
   colours: {
     combo1: '30,144,255',
@@ -86,6 +106,7 @@ const DEFAULT_SKIN_INI: SkinIni = {
     songSelectInactiveText: '230,230,230',
     sliderBorder: '120,120,120',
     sliderTrackOverride: '0,0,0',
+    unknownSettings: {},
   },
   fonts: {
     hitCirclePrefix: 'default',
@@ -94,7 +115,12 @@ const DEFAULT_SKIN_INI: SkinIni = {
     scoreOverlap: 0,
     comboPrefix: 'num\\berlin',
     comboOverlap: 5,
+    unknownSettings: {},
   },
+  catchTheBeat: {
+    unknownSettings: {},
+  },
+  mania: [],
 };
 
 class SkinIniService {
@@ -166,15 +192,19 @@ class SkinIniService {
       songSelectInactiveText: '',
       sliderBorder: '',
       sliderTrackOverride: '',
+      unknownSettings: {},
     };
 
     const result: SkinIni = {
-      general: { ...DEFAULT_SKIN_INI.general },
+      general: { ...DEFAULT_SKIN_INI.general, unknownSettings: {} },
       colours: { ...emptyColours },
-      fonts: { ...DEFAULT_SKIN_INI.fonts },
+      fonts: { ...DEFAULT_SKIN_INI.fonts, unknownSettings: {} },
+      catchTheBeat: { unknownSettings: {} },
+      mania: [],
     };
 
     let currentSection = '';
+    let currentManiaSection: SkinManiaSection | null = null;
     const lines = content.split('\n');
 
     for (const line of lines) {
@@ -182,9 +212,20 @@ class SkinIniService {
       if (!trimmed || trimmed.startsWith('//')) continue;
 
       // Section header
-      const sectionMatch = trimmed.match(/^\[(\w+)\]$/);
+      const sectionMatch = trimmed.match(/^\[(\w+)\]$/i);
       if (sectionMatch) {
+        // 前のManiaセクションを保存
+        if (currentManiaSection) {
+          result.mania.push(currentManiaSection);
+          currentManiaSection = null;
+        }
+
         currentSection = sectionMatch[1].toLowerCase();
+
+        // Maniaセクションの開始
+        if (currentSection === 'mania') {
+          currentManiaSection = { keys: 0, settings: {} };
+        }
         continue;
       }
 
@@ -204,8 +245,27 @@ class SkinIniService {
           case 'fonts':
             this.parseFontsKey(result.fonts, key, value);
             break;
+          case 'catchthebeat':
+            // CatchTheBeatセクションは全て unknownSettings に保存
+            result.catchTheBeat.unknownSettings[key] = value;
+            break;
+          case 'mania':
+            if (currentManiaSection) {
+              // Keys は特別扱い
+              if (key.toLowerCase() === 'keys') {
+                currentManiaSection.keys = parseInt(value, 10) || 0;
+              }
+              // 全ての設定をsettingsに保存
+              currentManiaSection.settings[key] = value;
+            }
+            break;
         }
       }
+    }
+
+    // 最後のManiaセクションを保存
+    if (currentManiaSection) {
+      result.mania.push(currentManiaSection);
     }
 
     return result;
@@ -215,6 +275,14 @@ class SkinIniService {
     const keyLower = key.toLowerCase().replace(/[_-]/g, '');
     const boolValue = value === '1' || value.toLowerCase() === 'true';
     const numValue = parseInt(value, 10);
+
+    // 既知のキーのリスト
+    const knownKeys = [
+      'name', 'author', 'version', 'sliderballflip', 'cursorrotate',
+      'cursortrailrotate', 'cursorexpand', 'cursorcentre', 'cursorcenter',
+      'sliderballframes', 'hitcircleoverlayabovenumber', 'hitcircleoverlayabovenumer',
+      'sliderstyle', 'allowsliderballtint', 'spinnerfadeplayfield'
+    ];
 
     switch (keyLower) {
       case 'name':
@@ -258,11 +326,23 @@ class SkinIniService {
       case 'spinnerfadeplayfield':
         general.spinnerFadePlayfield = boolValue;
         break;
+      default:
+        // 未知の設定は元のキー名を保持して保存
+        if (!knownKeys.includes(keyLower)) {
+          general.unknownSettings[key] = value;
+        }
+        break;
     }
   }
 
   private parseColoursKey(colours: SkinColours, key: string, value: string): void {
     const keyLower = key.toLowerCase().replace(/[_-]/g, '');
+
+    // 既知のキーのリスト
+    const knownKeys = [
+      'combo1', 'combo2', 'combo3', 'combo4', 'combo5', 'combo6', 'combo7', 'combo8',
+      'songselectactivetext', 'songselectinactivetext', 'sliderborder', 'slidertrackoverride'
+    ];
 
     switch (keyLower) {
       case 'combo1':
@@ -301,12 +381,24 @@ class SkinIniService {
       case 'slidertrackoverride':
         colours.sliderTrackOverride = value;
         break;
+      default:
+        // 未知の設定は元のキー名を保持して保存
+        if (!knownKeys.includes(keyLower)) {
+          colours.unknownSettings[key] = value;
+        }
+        break;
     }
   }
 
   private parseFontsKey(fonts: SkinFonts, key: string, value: string): void {
     const keyLower = key.toLowerCase().replace(/[_-]/g, '');
     const numValue = parseInt(value, 10);
+
+    // 既知のキーのリスト
+    const knownKeys = [
+      'hitcircleprefix', 'hitcircleoverlap', 'scoreprefix',
+      'scoreoverlap', 'comboprefix', 'combooverlap'
+    ];
 
     switch (keyLower) {
       case 'hitcircleprefix':
@@ -327,6 +419,12 @@ class SkinIniService {
       case 'combooverlap':
         if (!isNaN(numValue)) fonts.comboOverlap = numValue;
         break;
+      default:
+        // 未知の設定は元のキー名を保持して保存
+        if (!knownKeys.includes(keyLower)) {
+          fonts.unknownSettings[key] = value;
+        }
+        break;
     }
   }
 
@@ -336,6 +434,12 @@ class SkinIniService {
   generateSkinIni(skin: SkinIni): string {
     const boolToStr = (b: boolean) => (b ? '1' : '0');
 
+    // [General] セクションのunknownSettingsを生成
+    const generalUnknownLines = Object.entries(skin.general.unknownSettings || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+
+    // コンボカラーの行を生成
     const comboLines: string[] = [];
     for (let i = 1; i <= 8; i++) {
       const key = `combo${i}` as keyof SkinColours;
@@ -344,6 +448,34 @@ class SkinIniService {
         comboLines.push(`Combo${i}: ${value}`);
       }
     }
+
+    // [Colours] セクションのunknownSettingsを生成
+    const coloursUnknownLines = Object.entries(skin.colours.unknownSettings || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+
+    // [Fonts] セクションのunknownSettingsを生成
+    const fontsUnknownLines = Object.entries(skin.fonts.unknownSettings || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+
+    // [CatchTheBeat] セクションを生成
+    const catchTheBeatLines = Object.entries(skin.catchTheBeat?.unknownSettings || {})
+      .map(([key, value]) => `${key}: ${value}`)
+      .join('\n');
+    const catchTheBeatSection = catchTheBeatLines
+      ? `\n[CatchTheBeat]\n${catchTheBeatLines}\n`
+      : '';
+
+    // [Mania] セクションを生成
+    const maniaSections = (skin.mania || [])
+      .map((maniaSection) => {
+        const settingsLines = Object.entries(maniaSection.settings)
+          .map(([key, value]) => `${key}: ${value}`)
+          .join('\n');
+        return `\n[Mania]\n${settingsLines}`;
+      })
+      .join('\n');
 
     return `[General]
 Name: ${skin.general.name}
@@ -362,6 +494,7 @@ SliderStyle: ${skin.general.sliderStyle}
 AllowSliderBallTint: ${boolToStr(skin.general.allowSliderBallTint)}
 
 SpinnerFadePlayfield: ${boolToStr(skin.general.spinnerFadePlayfield)}
+${generalUnknownLines ? '\n' + generalUnknownLines : ''}
 
 [Colours]
 ${comboLines.join('\n')}
@@ -371,6 +504,7 @@ SongSelectInactiveText: ${skin.colours.songSelectInactiveText}
 
 SliderBorder: ${skin.colours.sliderBorder}
 SliderTrackOverride: ${skin.colours.sliderTrackOverride}
+${coloursUnknownLines ? '\n' + coloursUnknownLines : ''}
 
 [Fonts]
 HitCirclePrefix: ${skin.fonts.hitCirclePrefix}
@@ -381,6 +515,7 @@ ScoreOverlap: ${skin.fonts.scoreOverlap}
 
 ComboPrefix: ${skin.fonts.comboPrefix}
 ComboOverlap: ${skin.fonts.comboOverlap}
+${fontsUnknownLines ? '\n' + fontsUnknownLines : ''}${catchTheBeatSection}${maniaSections}
 `;
   }
 

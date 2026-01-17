@@ -62,6 +62,8 @@ export default function SkinIniPage({ currentSkin }: SkinIniPageProps) {
           general: { ...DEFAULT_SKIN_INI.general, ...loaded.general },
           colours: { ...DEFAULT_SKIN_INI.colours, ...loaded.colours },
           fonts: { ...DEFAULT_SKIN_INI.fonts, ...loaded.fonts },
+          catchTheBeat: loaded.catchTheBeat || { unknownSettings: {} },
+          mania: loaded.mania || [],
         };
         setSkinIni(next);
 
@@ -165,8 +167,9 @@ export default function SkinIniPage({ currentSkin }: SkinIniPageProps) {
     setComboCount(nextCount);
     
     // Initialize with white if empty
-    const key = `combo${nextCount}` as keyof SkinColours;
-    if (!skinIni.colours[key] || skinIni.colours[key].trim() === '') {
+    const key = `combo${nextCount}` as 'combo1' | 'combo2' | 'combo3' | 'combo4' | 'combo5' | 'combo6' | 'combo7' | 'combo8';
+    const currentValue = skinIni.colours[key];
+    if (!currentValue || currentValue.trim() === '') {
       updateColour(key, '255,255,255');
     }
   }, [comboCount, skinIni.colours, updateColour]);
